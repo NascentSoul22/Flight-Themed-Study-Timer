@@ -8,239 +8,291 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
-/* Layout: a night-flight cockpit. Planner (form + boarding pass) before departure,
-   then a flight deck (seatbelt annunciator, countdown, nav display, schedule strip). */
+/* Layout: a twilight first-class cabin. A dusk sky (indigo above, sunset glow at the horizon) under frosted-glass
+   panels with champagne-gold detailing. Planner + flight plan, then the ticket, then the flight deck. */
 :root {
-  --sky: #0a1020;        /* page ground: night sky */
-  --panel: #111a2d;      /* instrument panel */
-  --panel-2: #172338;    /* raised bezel */
-  --line: #26344f;       /* hairlines, graticule */
-  --ink: #e6ecf7;        /* primary text */
-  --muted: #8b98b3;      /* captions */
-  --focus: #4fd6ec;      /* seatbelt ON: study (ND cyan) */
-  --break: #f4b740;      /* seatbelt OFF: break (amber caution) */
-  --route: #e25ad6;      /* FMS magenta route line */
-  --ok: #6ee38a;         /* landed */
-  --space: #03060f;      /* nav display: space behind the globe */
-  --space-2: #0d1a36;    /* glow of space near the globe */
-  --city: #ffd27a;       /* other airports */
-  --grid-globe: rgba(200, 225, 255, .16);
-  --coast-globe: rgba(235, 245, 255, .55);
-  --border-globe: rgba(255, 255, 255, .28);
-  --warn: #ff6b5e;       /* divert */
+  --sky: #0b0a1d;        /* page ground: night above the clouds */
+  --dusk: #2a1638;       /* plum band low in the sky */
+  --sunset: #ff9a62;     /* horizon glow */
+  --glass: rgba(255, 255, 255, .055);
+  --glass-2: rgba(255, 255, 255, .09);
+  --panel: #15122c;      /* solid fallback behind glass, menus */
+  --panel-2: #1d1938;
+  --line: rgba(255, 255, 255, .11);
+  --ink: #f6f0e6;        /* warm ivory text */
+  --muted: #aaa3c6;      /* lavender grey captions */
+  --gold: #e9c27b;       /* champagne gold accent */
+  --gold-2: #c08f45;
+  --focus: #8fd8ff;      /* seatbelt ON: study (clear-sky blue) */
+  --break: #f6c56d;      /* seatbelt OFF: break (cabin-light gold) */
+  --route: #ff8fc4;      /* remaining route */
+  --ok: #95e6b6;         /* landed */
+  --warn: #ff8b7b;       /* divert */
+  --space: #05040f;      /* nav display: space behind the globe */
+  --space-2: #191440;    /* glow of space near the globe */
+  --city: #ffd796;       /* other airports */
+  --grid-globe: rgba(220, 225, 255, .15);
+  --coast-globe: rgba(245, 240, 255, .55);
+  --border-globe: rgba(255, 255, 255, .26);
+  --paper: #f4f4f8;      /* printed ticket stock */
+  --paper-ink: #1b1636;  /* ticket print */
+  --paper-line: #cfcbe0; /* ticket rules */
   --font-display: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
   --font-body: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
   --font-mono: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
-  --paper: #eef1f6;      /* printed ticket stock */
-  --paper-ink: #14213a;  /* ticket print */
-  --paper-line: #c3cbd8; /* ticket rules */
+  --radius: 18px;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
-  background: radial-gradient(1200px 600px at 85% -10%, #1a2c5a 0%, transparent 60%),
-              radial-gradient(900px 500px at -10% 110%, #2a1640 0%, transparent 55%), var(--sky);
-  background-attachment: fixed;
+  background: var(--sky);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
   padding-inline: 16px;
-  padding-block: 20px 48px;
+  padding-block: 28px 56px;
+  min-height: 100%;
 }
-.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: .02em; text-wrap: balance; margin: 0; }
-.label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+body::after {   /* the dusk sky, pinned to the screen */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -2;
+  background:
+    radial-gradient(1400px 520px at 50% 108%, color-mix(in srgb, var(--sunset) 30%, transparent), transparent 70%),
+    radial-gradient(900px 600px at 88% -12%, rgba(120, 96, 255, .22), transparent 62%),
+    radial-gradient(700px 500px at -8% 30%, rgba(255, 120, 190, .10), transparent 60%),
+    linear-gradient(180deg, #06071a 0%, #100d2b 42%, var(--dusk) 82%, #3a1c30 100%);
+}
+body::before {   /* faint star field */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .55;
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 140px 80px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 260px 40px, #ffe9c4 50%, transparent 51%),
+    radial-gradient(1px 1px at 90px 160px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 210px 210px, #dfe6ff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 300px 140px, #fff 50%, transparent 51%);
+  background-size: 320px 260px;
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 85%);
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+.label { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in srgb, var(--gold) 70%, var(--muted)); }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 button, input, select { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+::selection { background: color-mix(in srgb, var(--gold) 45%, transparent); }
 
 /* Header */
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.brand { display: flex; align-items: baseline; gap: 12px; }
-.brand h1 { font-size: 30px; text-transform: uppercase; }
-.brand .tag { color: var(--muted); font-size: 13px; }
-.hours { color: var(--muted); font-size: 13px; }
-.hours b { color: var(--ink); font-family: var(--font-mono); font-weight: 700; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand svg { flex: none; filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--gold) 45%, transparent)); }
+.brand h1 { font-size: clamp(30px, 5vw, 44px); font-style: italic; letter-spacing: .01em; line-height: 1; }
+.brand .tag { display: block; margin-top: 6px; color: var(--gold); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; }
+.hours {
+  display: grid; gap: 2px; text-align: right; padding: 10px 16px; border-radius: 14px;
+  background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px);
+  color: var(--muted); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+}
+.hours b { color: var(--ink); font-family: var(--font-mono); font-weight: 400; font-size: 26px; letter-spacing: 0; text-transform: none; font-style: italic; }
 
-/* Panels */
-.panel { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+/* Glass panels */
+.panel {
+  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; min-width: 0;
+  box-shadow: 0 24px 60px rgba(4, 2, 18, .45), inset 0 1px 0 rgba(255, 255, 255, .09);
+  backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+.panel h2 { font-size: 28px; font-style: italic; }
 
 /* Planner */
-.planner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
-.form { display: grid; gap: 14px; }
+.planner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
+.form { display: grid; gap: 16px; }
 .row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field select, .field input {
-  width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
-  padding: 10px; font-family: var(--font-mono); font-size: 14px;
+  width: 100%; background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 10px;
+  padding: 11px 12px; font-family: var(--font-mono); font-size: 16px; transition: border-color .2s, box-shadow .2s;
 }
-.field .hint { font-size: 12px; color: var(--muted); }
-.swap { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; cursor: pointer; }
-.swap:hover { border-color: var(--muted); }
-.dur { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field select option { background: var(--panel); color: var(--ink); }
+.field select:hover, .field input:hover { border-color: rgba(255, 255, 255, .22); }
+.field select:focus, .field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent); }
+.field .hint { font-size: 13px; color: var(--muted); font-style: italic; }
+.swap { background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 50%; width: 42px; height: 42px; cursor: pointer; color: var(--gold); font-size: 18px; }
+.swap:hover { border-color: var(--gold); transform: rotate(180deg); }
+@media (prefers-reduced-motion: no-preference) { .swap { transition: transform .4s, border-color .2s; } }
+.dur { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dur .field input { text-align: right; }
-.reset { background: none; border: 0; color: var(--focus); padding: 0; cursor: pointer; font-size: 12px; text-decoration: underline; justify-self: start; }
+.reset { background: none; border: 0; color: var(--gold); padding: 0; cursor: pointer; font-size: 13px; text-decoration: underline; justify-self: start; }
+.form > .hint-line { font-size: 13px; color: var(--muted); font-style: italic; }
 
 .btn {
-  border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px;
-  padding: 11px 16px; cursor: pointer; font-family: var(--font-display); font-weight: 700;
-  font-size: 17px; letter-spacing: .06em; text-transform: uppercase;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .06); border-radius: 999px;
+  padding: 11px 22px; cursor: pointer; font-family: var(--font-display); font-weight: 700;
+  font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
+  transition: transform .15s, box-shadow .2s, border-color .2s, background .2s;
 }
-.btn:hover { border-color: var(--muted); }
-.btn.primary { background: var(--focus); color: var(--sky); border-color: var(--focus); }
-.btn.primary:hover { filter: brightness(1.08); }
+.btn:hover { border-color: rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .1); }
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: linear-gradient(180deg, #f8dd9e 0%, var(--gold) 45%, var(--gold-2) 100%); color: #21162e; border-color: #f6d896;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--gold) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+.btn.primary:hover { box-shadow: 0 14px 34px color-mix(in srgb, var(--gold) 50%, transparent), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .btn.danger { color: var(--warn); }
-.btn.danger.armed { background: var(--warn); color: var(--sky); border-color: var(--warn); }
+.btn.danger.armed { background: var(--warn); color: #2a0f12; border-color: var(--warn); }
 
-/* Boarding pass */
-.pass { display: grid; gap: 16px; }
+/* Flight plan summary */
+.pass { display: grid; gap: 18px; }
 .pass-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
 .pass-route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
-.pass-route .code { font-family: var(--font-display); font-size: 56px; line-height: 1; font-weight: 700; }
-.pass-route .city { color: var(--muted); font-size: 13px; }
+.pass-route .code { font-family: var(--font-display); font-size: 64px; line-height: 1; letter-spacing: .02em; }
+.pass-route .city { color: var(--muted); font-size: 15px; font-style: italic; }
 .pass-route .to { text-align: right; }
-.pass-route .mid { color: var(--route); text-align: center; font-family: var(--font-mono); font-size: 12px; }
+.pass-route .mid { color: var(--gold); text-align: center; font-family: var(--font-mono); font-size: 14px; font-style: italic; }
 .pass-route .mid svg { display: block; margin: 0 auto 4px; }
-.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
-.facts .v { font-family: var(--font-mono); font-size: 16px; font-weight: 700; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.facts .v { font-family: var(--font-mono); font-size: 20px; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
 
 /* Schedule strip */
-.strip-wrap { display: grid; gap: 6px; }
-.strip { position: relative; display: flex; height: 26px; border-radius: 4px; overflow: hidden; background: var(--panel-2); }
-.strip .seg { height: 100%; border-right: 2px solid var(--panel); min-width: 2px; position: relative; }
+.strip-wrap { display: grid; gap: 8px; }
+.strip { position: relative; display: flex; height: 28px; border-radius: 999px; overflow: hidden; background: rgba(8, 6, 24, .5); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5); }
+.strip .seg { height: 100%; border-right: 2px solid rgba(8, 6, 24, .7); min-width: 2px; position: relative; }
 .strip .seg:last-child { border-right: 0; }
-.strip .seg.focus { background: color-mix(in srgb, var(--focus) 70%, var(--panel)); }
-.strip .seg.break { background: var(--break); }
-.strip .seg.done { opacity: .35; }
-.strip .seg span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--sky); font-weight: 700; overflow: hidden; white-space: nowrap; }
-.strip .cursor { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--sky); transform: translateX(-1px); }
-.strip-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.strip .seg.focus { background: linear-gradient(180deg, color-mix(in srgb, var(--focus) 85%, #fff), color-mix(in srgb, var(--focus) 70%, #2a3f80)); }
+.strip .seg.break { background: linear-gradient(180deg, #fbe0a3, var(--break) 60%, var(--gold-2)); }
+.strip .seg.done { opacity: .3; }
+.strip .seg span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; color: #15122c; font-weight: 700; overflow: hidden; white-space: nowrap; }
+.strip .cursor { position: absolute; top: 2px; bottom: 2px; width: 3px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 10px var(--ink); transform: translateX(-1px); }
+.strip-scale { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-style: italic; }
 
 /* Flight deck */
 .annunciator {
+  --tone: var(--focus);
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  border-radius: 10px; padding: 14px 18px; border: 1px solid var(--focus);
-  background: color-mix(in srgb, var(--focus) 12%, var(--panel));
+  border-radius: var(--radius); padding: 16px 22px; border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--tone) 20%, transparent), color-mix(in srgb, var(--tone) 6%, transparent) 60%);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--tone) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, .1);
+  backdrop-filter: blur(16px);
 }
-.annunciator { box-shadow: 0 0 24px color-mix(in srgb, var(--focus) 25%, transparent); }
-.annunciator.break { box-shadow: 0 0 24px color-mix(in srgb, var(--break) 25%, transparent); }
-.annunciator.hold { box-shadow: none; }
-.annunciator.break { border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, var(--panel)); }
-.annunciator.hold { border-color: var(--muted); background: var(--panel); }
-.sign { display: flex; align-items: center; gap: 14px; }
-.sign svg { flex: none; }
-.sign .what { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; }
-.sign .sub { color: var(--muted); font-size: 13px; }
-.annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 13px; text-align: right; }
+.annunciator.break { --tone: var(--break); }
+.annunciator.hold { --tone: var(--muted); box-shadow: none; }
+.sign { display: flex; align-items: center; gap: 16px; }
+.sign svg { flex: none; filter: drop-shadow(0 0 8px currentColor); }
+.sign .what { font-family: var(--font-display); font-size: 28px; font-style: italic; line-height: 1.1; }
+.sign .sub { color: var(--muted); font-size: 15px; }
+.annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 14px; text-align: right; letter-spacing: .06em; }
 
-.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; }
-.timer { display: grid; gap: 16px; align-content: start; }
-.big { text-shadow: 0 0 28px color-mix(in srgb, currentColor 45%, transparent); font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 700; font-size: clamp(72px, 15vw, 128px); line-height: .9; letter-spacing: .01em; color: var(--focus); }
+.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; }
+.timer { display: grid; gap: 18px; align-content: start; }
+.big {
+  font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 400; font-style: italic;
+  font-size: clamp(80px, 16vw, 140px); line-height: .9; letter-spacing: -.01em; color: var(--focus);
+  text-shadow: 0 0 40px color-mix(in srgb, currentColor 45%, transparent);
+}
 .break-mode .big { color: var(--break); }
 .hold-mode .big { color: var(--muted); }
-.next { color: var(--muted); font-size: 14px; }
+.next { color: var(--muted); font-size: 16px; }
 .next b { color: var(--ink); font-weight: 700; }
-.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.inst { background: var(--panel-2); padding: 10px 12px; display: grid; gap: 2px; }
-.inst .v { font-family: var(--font-mono); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
-.inst .v small { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
-.nd { position: relative; padding: 0; overflow: hidden; }
-.nd { background: var(--space); }
-.nd canvas { display: block; width: 100%; height: 100%; min-height: 380px; touch-action: none; }
-.nd-tools { position: absolute; right: 10px; top: 8px; z-index: 1; display: flex; gap: 6px; }
+.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.inst { background: rgba(8, 6, 24, .4); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
+.inst .label { font-size: 10px; }
+.inst .v { font-family: var(--font-mono); font-size: 21px; font-variant-numeric: tabular-nums; }
+.inst .v small { font-size: 12px; color: var(--muted); margin-left: 3px; font-style: italic; }
+.panel.nd { position: relative; padding: 0; overflow: hidden; background: var(--space); }
+.nd canvas { display: block; width: 100%; height: 100%; min-height: 400px; touch-action: none; }
+.nd-tools { position: absolute; right: 12px; top: 10px; z-index: 1; display: flex; gap: 6px; }
 .nd-tools button {
-  background: rgba(10, 16, 32, .72); border: 1px solid rgba(200, 225, 255, .25); color: var(--ink);
-  border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 13px; letter-spacing: .06em; backdrop-filter: blur(4px);
+  background: rgba(10, 8, 30, .6); border: 1px solid rgba(255, 255, 255, .18); color: var(--ink);
+  border-radius: 999px; padding: 5px 13px; cursor: pointer; font-size: 13px; letter-spacing: .08em; backdrop-filter: blur(8px);
 }
-.nd-tools button[aria-pressed="true"] { background: var(--focus); color: var(--sky); border-color: var(--focus); }
-.nd-tools button:hover { border-color: var(--ink); }
-.nd-hint { position: absolute; right: 12px; bottom: 8px; z-index: 1; font-size: 12px; color: rgba(230, 236, 247, .7); text-shadow: 0 1px 2px #000; pointer-events: none; }
-.nd .nd-tag { position: absolute; left: 12px; top: 10px; z-index: 1; color: rgba(230, 236, 247, .8); text-shadow: 0 1px 2px #000; }
+.nd-tools button[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border-color: #f6d896; }
+.nd-tools button:hover { border-color: var(--gold); }
+.nd-hint { position: absolute; right: 14px; bottom: 10px; z-index: 1; font-size: 13px; font-style: italic; color: rgba(246, 240, 230, .72); text-shadow: 0 1px 3px #000; pointer-events: none; }
+.nd .nd-tag { position: absolute; left: 14px; top: 13px; z-index: 1; text-shadow: 0 1px 3px #000; }
 .controls { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* Landed */
-.landed { display: grid; gap: 14px; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, var(--panel)); }
-.landed.diverted { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 8%, var(--panel)); }
-.landed h2 { font-size: 30px; }
-.landed p { margin: 0; max-width: 62ch; color: var(--muted); }
+.landed { display: grid; gap: 14px; border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--ok) 14%, transparent), var(--glass)); }
+.landed.diverted { border-color: color-mix(in srgb, var(--warn) 50%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--warn) 14%, transparent), var(--glass)); }
+.landed h2 { font-size: 40px; }
+.landed p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 18px; }
 .landed p b { color: var(--ink); }
 
 /* Ticket */
-.ticket-view { display: grid; gap: 14px; justify-items: center; }
-.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; }
+.ticket-view { display: grid; gap: 16px; justify-items: center; }
+.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; font-style: italic; font-size: 18px; }
 .ticket {
-  width: 100%; max-width: 860px; display: grid; grid-template-columns: minmax(0, 1fr) 230px;
-  background: var(--paper); color: var(--paper-ink); border-radius: 12px; overflow: hidden;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+  width: 100%; max-width: 880px; display: grid; grid-template-columns: minmax(0, 1fr) 240px;
+  background: var(--paper); color: var(--paper-ink); border-radius: 16px; overflow: hidden;
+  box-shadow: 0 30px 70px rgba(4, 2, 18, .6), 0 0 0 1px rgba(255, 255, 255, .4);
 }
 @media (prefers-reduced-motion: no-preference) {
   .ticket.printing { animation: print 900ms cubic-bezier(.2, .8, .2, 1); }
   @keyframes print { from { transform: translateY(-18px); clip-path: inset(0 0 70% 0); } to { transform: none; clip-path: inset(0 0 0 0); } }
 }
-.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
-  background: var(--paper-ink); color: var(--paper); padding: 10px 22px; }
-.t-band b { font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
-.t-band span { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
-.t-main { padding: 18px 22px 20px; display: grid; gap: 16px; min-width: 0; }
-.t-stub { padding: 18px 20px 20px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); position: relative; min-width: 0; }
-.t-stub::before, .t-stub::after { content: ""; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky); }
-.t-stub::before { top: -10px; } .t-stub::after { bottom: -10px; }
-.t-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 60%, var(--paper)); }
-.t-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: linear-gradient(100deg, #17123a, #3a1d4a 60%, #6b2f4a); color: var(--paper); padding: 12px 24px; }
+.t-band b { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: 400; font-style: italic; color: var(--gold); }
+.t-band span { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.t-main { padding: 20px 24px 22px; display: grid; gap: 16px; min-width: 0; }
+.t-stub { padding: 20px 22px 22px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); min-width: 0;
+  background: linear-gradient(180deg, rgba(233, 194, 123, .14), transparent 70%); }
+.t-k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 55%, var(--paper)); }
+.t-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .t-route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; }
-.t-route .code { font-size: 64px; line-height: .9; font-weight: 700; }
+.t-route .code { font-size: 72px; line-height: .9; }
 .t-route .to { text-align: right; }
-.t-route .plane { font-size: 26px; color: var(--route); padding-bottom: 8px; }
+.t-route .plane { font-size: 28px; color: var(--gold-2); padding-bottom: 10px; }
 .t-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; border-top: 1px solid var(--paper-line); padding-top: 14px; }
-.t-note { font-style: italic; font-size: 14px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
-.t-barcode { width: 100%; height: 56px; display: block; }
-.t-num { font-size: 12px; letter-spacing: .12em; text-align: center; }
-.ticket-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
-.autoboard { color: var(--muted); font-size: 14px; }
-.autoboard b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.t-note { font-style: italic; font-size: 16px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
+.t-barcode { width: 100%; height: 58px; display: block; }
+.t-num { font-size: 12px; letter-spacing: .14em; text-align: center; }
+.ticket-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.autoboard { color: var(--muted); font-size: 15px; font-style: italic; }
+.autoboard b { color: var(--gold); font-variant-numeric: tabular-nums; font-style: normal; }
 @media (max-width: 700px) {
   .ticket { grid-template-columns: 1fr; }
   .t-stub { border-left: 0; border-top: 2px dashed var(--paper-line); }
-  .t-stub::before, .t-stub::after { top: -11px; bottom: auto; }
-  .t-stub::before { left: -10px; } .t-stub::after { left: auto; right: -10px; }
   .t-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .t-route .code { font-size: 48px; }
+  .t-route .code { font-size: 52px; }
 }
 
 /* Logbook */
-.logbook { display: grid; gap: 12px; }
+.logbook { display: grid; gap: 14px; }
 .logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.logbook h2 { font-size: 22px; text-transform: uppercase; }
 .table-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: color-mix(in srgb, var(--gold) 70%, var(--muted)); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+tbody tr:hover td { background: rgba(255, 255, 255, .03); }
 td.num, th.num { text-align: right; }
-.pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; font-family: var(--font-body); }
+.pill { font-size: 12px; padding: 2px 10px; border-radius: 99px; border: 1px solid currentColor; font-family: var(--font-body); font-style: italic; }
 .pill.ok { color: var(--ok); }
 .pill.div { color: var(--warn); }
-.empty { color: var(--muted); font-size: 14px; margin: 0; }
-.clear { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; text-decoration: underline; }
+.empty { color: var(--muted); font-size: 16px; margin: 0; font-style: italic; }
+.clear { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; }
 .clear.armed { color: var(--warn); }
 
 @media (max-width: 780px) {
   .planner, .deck { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pass-route .code { font-size: 44px; }
-  .nd canvas { min-height: 260px; }
+  .pass-route .code { font-size: 48px; }
+  .nd canvas { min-height: 300px; }
+  .hours { text-align: left; }
 }
 @media (max-width: 420px) {
   .instruments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sign .what { font-size: 22px; }
+  .sign .what { font-size: 23px; }
+  .panel { padding: 18px; }
+  .nd-hint { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .annunciator { transition: background .4s, border-color .4s; }
+  .annunciator { transition: background .5s, border-color .5s, box-shadow .5s; }
 }
 </style>
 </head>
@@ -249,8 +301,11 @@ td.num, th.num { text-align: right; }
 
   <header class="top">
     <div class="brand">
-      <h1>Study Flight Deck</h1>
-      <span class="tag">Your flight time is your study time.</span>
+      <svg width="58" height="30" viewBox="0 0 58 30" aria-hidden="true"><defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3a8"/><stop offset="1" stop-color="#c08f45"/></linearGradient></defs><path fill="url(#gw)" d="M29 7c3 0 5 2.2 5 5s-2 6-5 9c-3-3-5-6.2-5-9s2-5 5-5zM24 12C17 8 8 6 0 6c3 3 8 5 14 6-4 0-8 .5-11 1.5 5 2 11 2 16 1-3 1-6 2.5-8 4 6 0 11-2 14-4.5zM34 12c7-4 16-6 24-6-3 3-8 5-14 6 4 0 8 .5 11 1.5-5 2-11 2-16 1 3 1 6 2.5 8 4-6 0-11-2-14-4.5z"/></svg>
+      <div>
+        <h1>Study Flight Deck</h1>
+        <span class="tag">Your flight time is your study time</span>
+      </div>
     </div>
     <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
   </header>
@@ -258,7 +313,7 @@ td.num, th.num { text-align: right; }
   <!-- PLANNER -->
   <section id="planner" class="planner">
     <form class="panel form" id="planForm" autocomplete="off">
-      <h2 style="font-size:22px;text-transform:uppercase">File a flight plan</h2>
+      <h2>File a flight plan</h2>
       <div class="row">
         <div class="field">
           <label class="label" for="from">From</label>
@@ -295,7 +350,7 @@ td.num, th.num { text-align: right; }
           <input id="breakMin" type="number" min="1" max="60" step="1" value="10">
         </div>
       </div>
-      <span class="hint" style="font-size:12px;color:var(--muted)">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
+      <span class="hint-line">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
 
       <button type="submit" class="btn primary" id="depart">Print my ticket</button>
     </form>
@@ -308,7 +363,7 @@ td.num, th.num { text-align: right; }
       <div class="pass-route">
         <div><div class="code" id="pFromCode">—</div><div class="city" id="pFromCity"></div></div>
         <div class="mid">
-          <svg width="64" height="20" viewBox="0 0 64 20" aria-hidden="true"><path d="M2 16 Q32 -6 62 16" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/></svg>
+          <svg width="64" height="20" viewBox="0 0 64 20" aria-hidden="true"><path d="M2 16 Q32 -6 62 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 4"/></svg>
           <span id="pDist">—</span>
         </div>
         <div class="to"><div class="code" id="pToCode">—</div><div class="city" id="pToCity"></div></div>
@@ -325,8 +380,8 @@ td.num, th.num { text-align: right; }
         <div class="strip-scale mono"><span>0:00</span><span id="pStripEnd"></span></div>
       </div>
       <div class="legend">
-        <span><i style="background:var(--focus)"></i>Seatbelt on: study</span>
-        <span><i style="background:var(--break)"></i>Seatbelt off: break</span>
+        <span><i style="background:var(--focus);box-shadow:0 0 8px var(--focus)"></i>Seatbelt on: study</span>
+        <span><i style="background:var(--break);box-shadow:0 0 8px var(--break)"></i>Seatbelt off: break</span>
       </div>
     </article>
   </section>
@@ -394,7 +449,7 @@ td.num, th.num { text-align: right; }
   <section id="ticketView" class="ticket-view" hidden>
     <p class="lead">Your ticket is ready. Check the details, then board.</p>
     <article class="ticket" id="ticket" aria-label="Flight ticket">
-      <div class="t-band"><b>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
+      <div class="t-band"><b><svg width="40" height="21" viewBox="0 0 58 30" aria-hidden="true"><defs><linearGradient id="gw2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3a8"/><stop offset="1" stop-color="#c08f45"/></linearGradient></defs><path fill="url(#gw2)" d="M29 7c3 0 5 2.2 5 5s-2 6-5 9c-3-3-5-6.2-5-9s2-5 5-5zM24 12C17 8 8 6 0 6c3 3 8 5 14 6-4 0-8 .5-11 1.5 5 2 11 2 16 1-3 1-6 2.5-8 4 6 0 11-2 14-4.5zM34 12c7-4 16-6 24-6-3 3-8 5-14 6 4 0 8 .5 11 1.5-5 2-11 2-16 1 3 1 6 2.5 8 4-6 0-11-2-14-4.5z"/></svg>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
       <div class="t-main">
         <div class="t-route">
           <div><div class="t-k">From</div><div class="code" id="tFromCode">HND</div><div id="tFromCity"></div></div>
@@ -1247,16 +1302,100 @@ td.num, th.num { text-align: right; }
   }
 
   // ----- Dynamic layer: route, waypoints, aircraft -----
-  function drawPlane(x, y, ang, C, scale = 1) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(scale, scale);
-    ctx.shadowColor = "rgba(255, 190, 80, 0.9)"; ctx.shadowBlur = 12;
-    ctx.fillStyle = C.brk; ctx.strokeStyle = "rgba(0, 0, 0, 0.6)"; ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(12, 0); ctx.lineTo(4, 2); ctx.lineTo(-1, 10); ctx.lineTo(-4, 10); ctx.lineTo(-1, 2); ctx.lineTo(-8, 2);
-    ctx.lineTo(-11, 6); ctx.lineTo(-13, 6); ctx.lineTo(-11, 0); ctx.lineTo(-13, -6); ctx.lineTo(-11, -6); ctx.lineTo(-8, -2);
-    ctx.lineTo(-1, -2); ctx.lineTo(-4, -10); ctx.lineTo(-1, -10); ctx.lineTo(4, -2); ctx.closePath();
-    ctx.fill(); ctx.shadowBlur = 0; ctx.stroke(); ctx.restore();
+  // ----- 3D airliner -----
+  // A small polygon model (x forward, y right wing, z up; fuselage length 1) drawn with flat shading and
+  // painter's sorting. It is oriented by the same camera as the globe, so it pitches, turns and tilts with the view.
+  const PLANE = (() => {
+    const faces = [], add = (pts, kind) => faces.push({ pts, kind });
+    const SIDES = 12;
+    const stations = [[0.5, 0.004, -0.004], [0.47, 0.03, -0.004], [0.42, 0.05, 0], [0.33, 0.056, 0],
+                      [-0.28, 0.056, 0], [-0.4, 0.04, 0.012], [-0.5, 0.01, 0.03]];
+    const rings = stations.map(([x, r, zc]) => Array.from({ length: SIDES }, (_, k) => {
+      const a = 2 * Math.PI * k / SIDES; return [x, Math.cos(a) * r, zc + Math.sin(a) * r];
+    }));
+    for (let s = 0; s < rings.length - 1; s++) {
+      for (let k = 0; k < SIDES; k++) {
+        const k2 = (k + 1) % SIDES, mid = Math.sin(2 * Math.PI * (k + 0.5) / SIDES);
+        const kind = s === 1 && mid > 0.25 ? "glass" : s === 3 && Math.abs(mid) < 0.3 ? "stripe" : "body";
+        add([rings[s][k], rings[s][k2], rings[s + 1][k2], rings[s + 1][k]], kind);
+      }
+    }
+    for (const sg of [1, -1]) {
+      add([[0.1, 0.05 * sg, -0.02], [-0.13, 0.05 * sg, -0.02], [-0.24, 0.5 * sg, 0.03], [-0.14, 0.5 * sg, 0.03]], "wing");
+      add([[-0.36, 0.03 * sg, 0.02], [-0.46, 0.03 * sg, 0.02], [-0.5, 0.19 * sg, 0.035], [-0.44, 0.19 * sg, 0.035]], "wing");
+      const ey = 0.19 * sg, ez = -0.055, er = 0.03, n = 8, front = [], back = [];
+      for (let k = 0; k < n; k++) {
+        const a = 2 * Math.PI * k / n;
+        front.push([0.11, ey + Math.cos(a) * er, ez + Math.sin(a) * er]);
+        back.push([-0.05, ey + Math.cos(a) * er * 0.8, ez + Math.sin(a) * er * 0.8]);
+      }
+      for (let k = 0; k < n; k++) { const k2 = (k + 1) % n; add([front[k], front[k2], back[k2], back[k]], "engine"); }
+      add(front, "intake");
+      add([[0.06, ey, ez + er], [-0.03, ey, ez + er], [-0.05, ey, -0.015], [0.04, ey, -0.015]], "engine");
+    }
+    add([[-0.29, 0, 0.05], [-0.46, 0, 0.05], [-0.5, 0, 0.25], [-0.43, 0, 0.25]], "tail");
+    for (const f of faces) {
+      const [a, b, c] = f.pts.length > 3 && f.pts[0][0] === f.pts[1][0] && f.pts[0][1] === f.pts[1][1] ? [f.pts[0], f.pts[2], f.pts[3]] : f.pts;
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n) || 1;
+      f.n = n.map(x => x / l);
+    }
+    return faces;
+  })();
+  const hexRGB = h => { const m = h.replace("#", ""), v = parseInt(m.length === 3 ? m.replace(/./g, c => c + c) : m, 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
+  const LIGHT = (() => { const l = [-0.5, 0.6, 0.65], n = Math.hypot(...l); return l.map(x => x / n); })();
+  const HALF = (() => { const h = [LIGHT[0], LIGHT[1], LIGHT[2] + 1], n = Math.hypot(...h); return h.map(x => x / n); })();
+
+  // F, Rt, U: the model's forward, right and up axes in view coordinates (x right, y up, z toward the viewer).
+  function drawPlane3D(ox, oy, F, Rt, U, size, shadowAt, C) {
+    const P = p => [p[0] * F[0] + p[1] * Rt[0] + p[2] * U[0], p[0] * F[1] + p[1] * Rt[1] + p[2] * U[1], p[0] * F[2] + p[1] * Rt[2] + p[2] * U[2]];
+    if (shadowAt) {   // silhouette flattened onto the ground
+      ctx.fillStyle = "rgba(0, 0, 0, 0.32)"; ctx.beginPath();
+      for (const f of PLANE) {
+        f.pts.forEach((p, i) => { const v = P([p[0], p[1], 0]), x = shadowAt[0] + v[0] * size, y = shadowAt[1] - v[1] * size; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+        ctx.closePath();
+      }
+      ctx.fill("nonzero");
+    }
+    const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, size * 0.9);
+    glow.addColorStop(0, "rgba(255, 225, 170, 0.28)"); glow.addColorStop(1, "rgba(255, 225, 170, 0)");
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ox, oy, size * 0.9, 0, Math.PI * 2); ctx.fill();
+    const COL = { body: [244, 242, 238], stripe: hexRGB(C.gold), tail: hexRGB(C.gold), wing: [200, 206, 218],
+                  engine: [140, 150, 168], intake: [34, 38, 52], glass: [28, 36, 66] };
+    const list = PLANE.map(f => {
+      const vs = f.pts.map(P);
+      return { f, vs, z: vs.reduce((s, v) => s + v[2], 0) / vs.length, n: P(f.n) };
+    }).sort((a, b) => a.z - b.z);
+    ctx.lineJoin = "round";
+    for (const it of list) {
+      let n = it.n; if (n[2] < 0) n = n.map(x => -x);
+      const diff = Math.max(0, n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]);
+      const spec = Math.pow(Math.max(0, n[0] * HALF[0] + n[1] * HALF[1] + n[2] * HALF[2]), 24) * (it.f.kind === "glass" ? 0.9 : 0.35);
+      const base = COL[it.f.kind], k = 0.4 + 0.6 * diff;
+      const rgb = base.map(c => Math.min(255, Math.round(c * k + 255 * spec)));
+      ctx.fillStyle = ctx.strokeStyle = `rgb(${rgb})`; ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      it.vs.forEach((v, i) => { const x = ox + v[0] * size, y = oy - v[1] * size; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    // navigation lights: red on the left wingtip, green on the right, white strobe on the tail
+    const lights = [[[-0.24, -0.5, 0.03], "255, 70, 70"], [[-0.24, 0.5, 0.03], "80, 255, 140"]];
+    if (Math.floor(Date.now() / 600) % 2 === 0) lights.push([[-0.5, 0, 0.25], "255, 255, 255"]);
+    for (const [p, rgb] of lights) {
+      const v = P(p), x = ox + v[0] * size, y = oy - v[1] * size;
+      const gl = ctx.createRadialGradient(x, y, 0, x, y, 6);
+      gl.addColorStop(0, `rgba(${rgb}, 1)`); gl.addColorStop(0.3, `rgba(${rgb}, 0.6)`); gl.addColorStop(1, `rgba(${rgb}, 0)`);
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+    }
   }
+  // Nose up in the climb, slightly down on descent
+  function pitchFor(plan, f) {
+    const [phase] = phaseAt(f, plan.totalMin);
+    return rad(phase === "Climb" || phase === "Takeoff" ? 9 : phase === "Descent" || phase === "Landing" ? -4 : 0);
+  }
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  function pitched(F, U, p) { const c = Math.cos(p), s = Math.sin(p); return [F.map((x, i) => x * c + U[i] * s), U.map((x, i) => x * c - F[i] * s)]; }
+
   function label(text, x, y, C) {
     ctx.font = `700 14px ${css("--font-mono")}`;
     ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0, 0, 0, 0.65)"; ctx.strokeText(text, x, y);
@@ -1277,7 +1416,7 @@ td.num, th.num { text-align: right; }
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     }
     const C = { ink: css("--ink"), route: css("--route"), focus: css("--focus"), brk: css("--break"), space: css("--space"), space2: css("--space-2"),
-                city: css("--city"), gridGlobe: css("--grid-globe"), coastGlobe: css("--coast-globe"), borderGlobe: css("--border-globe") };
+                city: css("--city"), gold: css("--gold"), gridGlobe: css("--grid-globe"), coastGlobe: css("--coast-globe"), borderGlobe: css("--border-globe") };
     const v = mapMode === "globe" ? globeView(plan, f, W, H) : flatView(plan, W, H), N = v.N;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(drawBase(v, W, H, dpr, C), 0, 0);
@@ -1317,9 +1456,11 @@ td.num, th.num { text-align: right; }
       if (pok && dot(pu, v.C) > -0.05) {
         ctx.setLineDash([2, 3]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
         ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(px, py); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.beginPath(); ctx.ellipse(gx, gy, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-        const a2 = air[Math.min(N, i0 + 1)], a1 = air[i0];
-        drawPlane(px, py, Math.atan2(a2[1] - a1[1], a2[0] - a1[0]), C, 1.15);
+        const dir = v.pts[i0 + 1].map((c, k) => c - v.pts[i0][k]), along = dot(dir, pu);
+        const tw = dir.map((c, k) => c - pu[k] * along), tl = Math.hypot(...tw) || 1, T = tw.map(c => c / tl);
+        const toView = w => [dot(w, v.E), dot(w, v.NB), dot(w, v.C)];
+        const [Fw, Uw] = pitched(T, pu, pitchFor(plan, f));
+        drawPlane3D(px, py, toView(Fw), toView(cross(T, pu)), toView(Uw), 66, [gx, gy], C);
       }
     } else {
       const P = v.P, pts = v.ll.map(p => [...P(p), true]);
@@ -1339,8 +1480,13 @@ td.num, th.num { text-align: right; }
         label(code, x + 10, y - 9, C);
       });
       const fi = Math.min(N, f * N), i0 = Math.min(N - 1, Math.floor(fi)), t = fi - i0;
-      const [ax, ay] = pts[i0], [bx, by] = pts[i0 + 1];
-      drawPlane(ax + (bx - ax) * t, ay + (by - ay) * t, Math.atan2(by - ay, bx - ax), C, 1.1);
+      const [ax, ay] = pts[i0], [bx, by] = pts[i0 + 1], hx = ax + (bx - ax) * t, hy = ay + (by - ay) * t;
+      // the flat map is seen from a fixed 40° camera tilt so the aircraft still reads in 3D
+      const ang = Math.atan2(by - ay, bx - ax), tilt = rad(40), ct = Math.cos(tilt), st = Math.sin(tilt);
+      const tv = w => [w[0], w[1] * ct + w[2] * st, -w[1] * st + w[2] * ct];
+      const F0 = [Math.cos(ang), -Math.sin(ang), 0], U0 = [0, 0, 1], [Fp, Up] = pitched(F0, U0, pitchFor(plan, f));
+      const lift = 16 * Math.sin(Math.PI * Math.min(1, f * 1.0));
+      drawPlane3D(hx, hy - lift - 4, tv(Fp), tv(cross(F0, U0)), tv(Up), 62, [hx, hy], C);
     }
   }
 
