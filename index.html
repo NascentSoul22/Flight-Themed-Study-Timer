@@ -6,7 +6,7 @@
 <title>Study Flight Deck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&family=B612+Mono:wght@400;700&family=Saira+Condensed:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
 /* Layout: a night-flight cockpit. Planner (form + boarding pass) before departure,
    then a flight deck (seatbelt annunciator, countdown, nav display, schedule strip). */
@@ -27,9 +27,12 @@
   --border: #3a5070;     /* country borders */
   --grid: rgba(139, 152, 179, .14);
   --warn: #ff6b5e;       /* divert */
-  --font-display: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
-  --font-body: "B612", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "B612 Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --font-body: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --font-mono: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --paper: #eef1f6;      /* printed ticket stock */
+  --paper-ink: #14213a;  /* ticket print */
+  --paper-line: #c3cbd8; /* ticket rules */
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -39,7 +42,7 @@ body {
   background: var(--sky);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   padding-inline: 16px;
   padding-block: 20px 48px;
@@ -153,6 +156,48 @@ button, input, select { font: inherit; color: inherit; }
 .landed p { margin: 0; max-width: 62ch; color: var(--muted); }
 .landed p b { color: var(--ink); }
 
+/* Ticket */
+.ticket-view { display: grid; gap: 14px; justify-items: center; }
+.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; }
+.ticket {
+  width: 100%; max-width: 860px; display: grid; grid-template-columns: minmax(0, 1fr) 230px;
+  background: var(--paper); color: var(--paper-ink); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ticket.printing { animation: print 900ms cubic-bezier(.2, .8, .2, 1); }
+  @keyframes print { from { transform: translateY(-18px); clip-path: inset(0 0 70% 0); } to { transform: none; clip-path: inset(0 0 0 0); } }
+}
+.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  background: var(--paper-ink); color: var(--paper); padding: 10px 22px; }
+.t-band b { font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
+.t-band span { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.t-main { padding: 18px 22px 20px; display: grid; gap: 16px; min-width: 0; }
+.t-stub { padding: 18px 20px 20px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); position: relative; min-width: 0; }
+.t-stub::before, .t-stub::after { content: ""; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky); }
+.t-stub::before { top: -10px; } .t-stub::after { bottom: -10px; }
+.t-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 60%, var(--paper)); }
+.t-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.t-route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; }
+.t-route .code { font-size: 64px; line-height: .9; font-weight: 700; }
+.t-route .to { text-align: right; }
+.t-route .plane { font-size: 26px; color: var(--route); padding-bottom: 8px; }
+.t-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; border-top: 1px solid var(--paper-line); padding-top: 14px; }
+.t-note { font-style: italic; font-size: 14px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
+.t-barcode { width: 100%; height: 56px; display: block; }
+.t-num { font-size: 12px; letter-spacing: .12em; text-align: center; }
+.ticket-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.autoboard { color: var(--muted); font-size: 14px; }
+.autoboard b { color: var(--ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) {
+  .ticket { grid-template-columns: 1fr; }
+  .t-stub { border-left: 0; border-top: 2px dashed var(--paper-line); }
+  .t-stub::before, .t-stub::after { top: -11px; bottom: auto; }
+  .t-stub::before { left: -10px; } .t-stub::after { left: auto; right: -10px; }
+  .t-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-route .code { font-size: 48px; }
+}
+
 /* Logbook */
 .logbook { display: grid; gap: 12px; }
 .logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -222,6 +267,10 @@ td.num, th.num { text-align: right; }
       </div>
 
       <div class="row2">
+        <div class="field" style="grid-column:1 / -1">
+          <label class="label" for="passenger">Passenger name</label>
+          <input id="passenger" type="text" maxlength="28" placeholder="Your name">
+        </div>
         <div class="field">
           <label class="label" for="focusMin">Study block (min)</label>
           <input id="focusMin" type="number" min="5" max="240" step="5" value="50">
@@ -233,12 +282,12 @@ td.num, th.num { text-align: right; }
       </div>
       <span class="hint" style="font-size:12px;color:var(--muted)">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
 
-      <button type="submit" class="btn primary" id="depart">Push back &amp; depart</button>
+      <button type="submit" class="btn primary" id="depart">Print my ticket</button>
     </form>
 
-    <article class="panel pass" aria-label="Boarding pass">
+    <article class="panel pass" aria-label="Flight plan summary">
       <div class="pass-head">
-        <span class="label">Boarding pass · Flight <span class="mono" id="pFlight">SF 000</span></span>
+        <span class="label">Flight plan · Flight <span class="mono" id="pFlight">SF 000</span></span>
         <span class="label mono" id="pDate"></span>
       </div>
       <div class="pass-route">
@@ -316,6 +365,48 @@ td.num, th.num { text-align: right; }
         <div class="strip" id="dStrip"></div>
         <div class="strip-scale mono"><span id="dStripStart">0:00</span><span id="dStripEnd"></span></div>
       </div>
+    </div>
+  </section>
+
+  <!-- TICKET -->
+  <section id="ticketView" class="ticket-view" hidden>
+    <p class="lead">Your ticket is ready. Check the details, then board.</p>
+    <article class="ticket" id="ticket" aria-label="Flight ticket">
+      <div class="t-band"><b>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
+      <div class="t-main">
+        <div class="t-route">
+          <div><div class="t-k">From</div><div class="code" id="tFromCode">HND</div><div id="tFromCity"></div></div>
+          <div class="plane" aria-hidden="true">✈</div>
+          <div class="to"><div class="t-k">To</div><div class="code" id="tToCode">ICN</div><div id="tToCity"></div></div>
+        </div>
+        <div class="t-grid">
+          <div><div class="t-k">Passenger</div><div class="t-v" id="tName"></div></div>
+          <div><div class="t-k">Flight</div><div class="t-v" id="tFlight"></div></div>
+          <div><div class="t-k">Date</div><div class="t-v" id="tDate"></div></div>
+          <div><div class="t-k">Class</div><div class="t-v">Study</div></div>
+          <div><div class="t-k">Departs</div><div class="t-v" id="tDep"></div></div>
+          <div><div class="t-k">Arrives</div><div class="t-v" id="tArr"></div></div>
+          <div><div class="t-k">Flight time</div><div class="t-v" id="tBlock"></div></div>
+          <div><div class="t-k">Distance</div><div class="t-v" id="tDist"></div></div>
+        </div>
+        <p class="t-note" id="tNote"></p>
+      </div>
+      <div class="t-stub">
+        <div class="t-grid" style="grid-template-columns:1fr 1fr;border:0;padding:0">
+          <div><div class="t-k">Gate</div><div class="t-v" id="tGate"></div></div>
+          <div><div class="t-k">Seat</div><div class="t-v" id="tSeat"></div></div>
+          <div><div class="t-k">Boarding</div><div class="t-v" id="tBoard"></div></div>
+          <div><div class="t-k">Group</div><div class="t-v" id="tGroup"></div></div>
+        </div>
+        <div><div class="t-k">Route</div><div class="t-v" id="tStubRoute"></div></div>
+        <svg class="t-barcode" id="tBarcode" viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="t-num" id="tNum"></div>
+      </div>
+    </article>
+    <div class="ticket-actions">
+      <button type="button" class="btn primary" id="boardBtn">Board &amp; depart</button>
+      <button type="button" class="btn" id="changeBtn">Change flight</button>
+      <span class="autoboard" id="autoBoard"></span>
     </div>
   </section>
 
@@ -453,6 +544,7 @@ td.num, th.num { text-align: right; }
 
   // ---------- State ----------
   let draft = store.get("sfd.draft", { from: "HND", to: "ICN", focusMin: 50, breakMin: 10, customMin: null, flightNo: flightNo() });
+  if (typeof draft.passenger !== "string") draft.passenger = "";
   if (!byCode[draft.from]) draft.from = "HND";
   if (!byCode[draft.to] || draft.to === draft.from) draft.to = draft.from === "ICN" ? "HND" : "ICN";
   let flight = store.get("sfd.active", null);   // { plan, startedAt, pausedAt, pausedMs }
@@ -477,6 +569,7 @@ td.num, th.num { text-align: right; }
   function syncForm() {
     fromSel.value = draft.from; toSel.value = draft.to;
     $("focusMin").value = draft.focusMin; $("breakMin").value = draft.breakMin;
+    $("passenger").value = draft.passenger;
     const total = draft.customMin || realBlockMin(byCode[draft.from], byCode[draft.to]);
     $("durH").value = Math.floor(total / 60); $("durM").value = total % 60;
     $("durReset").hidden = !draft.customMin;
@@ -533,6 +626,7 @@ td.num, th.num { text-align: right; }
   }
   $("durH").addEventListener("change", onDur); $("durM").addEventListener("change", onDur);
   $("durReset").addEventListener("click", () => { draft.customMin = null; saveDraft(); });
+  $("passenger").addEventListener("input", e => { draft.passenger = e.target.value; store.set("sfd.draft", draft); });
   $("focusMin").addEventListener("change", e => { draft.focusMin = Math.max(5, Math.min(240, parseInt(e.target.value, 10) || 50)); saveDraft(); });
   $("breakMin").addEventListener("change", e => { draft.breakMin = Math.max(1, Math.min(60, parseInt(e.target.value, 10) || 10)); saveDraft(); });
 
@@ -540,14 +634,91 @@ td.num, th.num { text-align: right; }
     e.preventDefault();
     initAudio();
     try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {}); } catch (err) {}
-    flight = { plan: planFromDraft(), startedAt: Date.now(), pausedAt: null, pausedMs: 0 };
+    issueTicket();
+  });
+
+  // ---------- Automated ticket ----------
+  const AUTO_BOARD_S = 30;
+  let ticket = null, boardTimer = null;
+  const rnd = n => Math.floor(Math.random() * n);
+
+  function issueTicket() {
+    const plan = planFromDraft();
+    ticket = {
+      plan,
+      passenger: (draft.passenger || "").trim() || "Student",
+      gate: "ABCDE"[rnd(5)] + (1 + rnd(48)),
+      seat: (3 + rnd(38)) + "ABCDEF"[rnd(6)],
+      group: 1 + rnd(4),
+      number: "742 " + String(1e9 + rnd(9e9)).slice(0, 10).replace(/(\d{4})(\d{6})/, "$1 $2"),
+      boardBy: Date.now() + AUTO_BOARD_S * 1000
+    };
+    renderTicket();
+    showView();
+    const t = $("ticket"); t.classList.remove("printing"); void t.offsetWidth; t.classList.add("printing");
+    clearInterval(boardTimer);
+    boardTimer = setInterval(updateAutoBoard, 250);
+    updateAutoBoard();
+    $("boardBtn").focus();
+  }
+
+  function barcode(seed) {
+    let x = 0, out = "", h = 0;
+    for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    while (x < 196) {
+      h = (h * 1103515245 + 12345) >>> 0;
+      const w = 1 + (h >>> 16) % 3, gap = 1 + (h >>> 20) % 2;
+      out += `<rect x="${x + 2}" y="0" width="${w}" height="56" fill="currentColor"/>`;
+      x += w + gap;
+    }
+    return out;
+  }
+
+  function renderTicket() {
+    const tk = ticket, p = tk.plan, a = byCode[p.from], b = byCode[p.to];
+    const dep = tk.boardBy, arr = dep + p.totalMin * 60000;
+    const nb = p.segments.filter(s => s.type === "break").length, nf = p.segments.length - nb;
+    $("tFromCode").textContent = a.code; $("tFromCity").textContent = a.city;
+    $("tToCode").textContent = b.code; $("tToCity").textContent = b.city;
+    $("tName").textContent = tk.passenger.toUpperCase();
+    $("tFlight").textContent = p.flightNo;
+    $("tDate").textContent = new Date(dep).toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" });
+    $("tDep").textContent = clockAt(dep);
+    $("tArr").textContent = clockAt(arr);
+    $("tBlock").textContent = fmtHM(p.totalMin);
+    $("tDist").textContent = `${Math.round(p.distKm / 1.852).toLocaleString()} nm`;
+    $("tNote").textContent = `Itinerary: ${nf} study block${nf > 1 ? "s" : ""} of up to ${p.focusMin} min` +
+      (nb ? ` with ${nb} break${nb > 1 ? "s" : ""} of ${p.breakMin} min` : ", no breaks") +
+      `, ${fmtHM(studyMin(p.segments))} of study in total.`;
+    $("tGate").textContent = tk.gate; $("tSeat").textContent = tk.seat;
+    $("tBoard").textContent = clockAt(Date.now()); $("tGroup").textContent = tk.group;
+    $("tStubRoute").textContent = `${a.code} → ${b.code}`;
+    $("tBarcode").innerHTML = barcode(tk.number + p.flightNo);
+    $("tNum").textContent = tk.number;
+  }
+
+  function updateAutoBoard() {
+    if (!ticket) { clearInterval(boardTimer); return; }
+    const left = Math.ceil((ticket.boardBy - Date.now()) / 1000);
+    if (left <= 0) { board(); return; }
+    $("autoBoard").innerHTML = `Boarding automatically in <b>${left}s</b>`;
+  }
+
+  function board() {
+    if (!ticket) return;
+    clearInterval(boardTimer);
+    initAudio();
+    flight = { plan: ticket.plan, seat: ticket.seat, startedAt: Date.now(), pausedAt: null, pausedMs: 0 };
     store.set("sfd.active", flight);
+    ticket = null;
     draft.flightNo = flightNo(); store.set("sfd.draft", draft);
     lastSegIdx = -1;
     chime("focus");
     keepAwake();
     showView();
-  });
+  }
+  $("boardBtn").addEventListener("click", board);
+  $("changeBtn").addEventListener("click", () => { clearInterval(boardTimer); ticket = null; showView(); });
 
   // ---------- Flight deck ----------
   function elapsedMs(now = Date.now()) {
@@ -916,16 +1087,17 @@ td.num, th.num { text-align: right; }
   // ---------- View switching ----------
   function showView() {
     const active = !!flight;
-    $("planner").hidden = active || !!lastLanding;
+    $("planner").hidden = active || !!lastLanding || !!ticket;
+    $("ticketView").hidden = !ticket || active;
     $("cockpit").hidden = !active;
     renderLanded();
     renderLog();
     if (active) {
-      $("dFlight").textContent = flight.plan.flightNo;
+      $("dFlight").textContent = flight.plan.flightNo + (flight.seat ? ` · Seat ${flight.seat}` : "");
       $("dRoute").textContent = `${byCode[flight.plan.from].city} → ${byCode[flight.plan.to].city}`;
       tick();
     } else {
-      document.title = "Study Flight Deck";
+      document.title = ticket ? `Ticket ${ticket.plan.from}→${ticket.plan.to}` : "Study Flight Deck";
       syncForm(); renderPass();
     }
   }
