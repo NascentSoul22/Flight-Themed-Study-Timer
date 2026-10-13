@@ -21,6 +21,11 @@
   --break: #f4b740;      /* seatbelt OFF: break (amber caution) */
   --route: #e25ad6;      /* FMS magenta route line */
   --ok: #6ee38a;         /* landed */
+  --ocean: #0b1729;      /* nav display: sea */
+  --land: #1d2c3c;       /* nav display: land */
+  --coast: #4d6a8c;      /* coastlines */
+  --border: #3a5070;     /* country borders */
+  --grid: rgba(139, 152, 179, .14);
   --warn: #ff6b5e;       /* divert */
   --font-display: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: "B612", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -137,8 +142,8 @@ button, input, select { font: inherit; color: inherit; }
 .inst .v { font-family: var(--font-mono); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
 .inst .v small { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
 .nd { position: relative; padding: 0; overflow: hidden; }
-.nd canvas { display: block; width: 100%; height: 100%; min-height: 300px; }
-.nd .nd-tag { position: absolute; left: 12px; top: 10px; }
+.nd canvas { display: block; width: 100%; height: 100%; min-height: 340px; }
+.nd .nd-tag { position: absolute; left: 12px; top: 10px; z-index: 1; }
 .controls { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* Landed */
@@ -333,6 +338,7 @@ td.num, th.num { text-align: right; }
 
 </div>
 
+<script src="geo/world.js"></script>
 <script>
 (() => {
   // ---------- Data ----------
@@ -664,22 +670,50 @@ td.num, th.num { text-align: right; }
   }
 
   // ---------- Nav display (canvas) ----------
+  // Real coastlines and borders from geo/world.js (Natural Earth 1:50m), drawn on a
+  // cos(lat)-scaled equirectangular projection fitted to the route.
   const canvas = $("map"), ctx = canvas.getContext("2d");
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-  function drawMap(plan, f) {
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width) return;
-    const dpr = window.devicePixelRatio || 1, W = rect.width, H = rect.height;
-    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const C = { bg: css("--panel"), line: css("--line"), ink: css("--ink"), muted: css("--muted"), route: css("--route"),
-                focus: css("--focus"), brk: css("--break") };
-    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  let world = null;   // decoded once: { arcs: Float64Array[] (lon,lat pairs), kind: string, polys: [{ rings, box }] }
+  function loadWorld() {
+    if (world || !window.WORLD) return world;
+    const W = window.WORLD, [sx, sy] = W.s, [tx, ty] = W.t;
+    const arcs = W.a.map(q => {
+      const out = new Float64Array(q.length); let x = 0, y = 0;
+      for (let i = 0; i < q.length; i += 2) { x += q[i]; y += q[i + 1]; out[i] = x * sx + tx; out[i + 1] = y * sy + ty; }
+      return out;
+    });
+    const polys = W.p.map(rings => {
+      const box = [180, 90, -180, -90];
+      const pts = rings.map(ring => {
+        const r = [];
+        ring.forEach((ai, j) => {
+          const arc = arcs[ai < 0 ? ~ai : ai], n = arc.length / 2;
+          for (let m = j ? 1 : 0; m < n; m++) {
+            const i = ai < 0 ? n - 1 - m : m, lat = arc[i * 2 + 1];
+            let lon = arc[i * 2];
+            if (r.length) { const d = lon - r[r.length - 2]; if (d > 180) lon -= 360; else if (d < -180) lon += 360; }  // keep rings continuous across ±180°
+            r.push(lon, lat);
+            if (lon < box[0]) box[0] = lon; if (lat < box[1]) box[1] = lat;
+            if (lon > box[2]) box[2] = lon; if (lat > box[3]) box[3] = lat;
+          }
+        });
+        return r;
+      });
+      return { rings: pts, box };
+    });
+    const boxes = arcs.map(a => {
+      const b = [180, 90, -180, -90];
+      for (let i = 0; i < a.length; i += 2) { b[0] = Math.min(b[0], a[i]); b[1] = Math.min(b[1], a[i + 1]); b[2] = Math.max(b[2], a[i]); b[3] = Math.max(b[3], a[i + 1]); }
+      return b;
+    });
+    world = { arcs, boxes, kind: W.k, polys };
+    return world;
+  }
 
-    const a = byCode[plan.from], b = byCode[plan.to], N = 120, pts = [];
+  function mapView(plan, W, H) {
+    const a = byCode[plan.from], b = byCode[plan.to], N = 160, pts = [];
     let prevLon = null, shift = 0;
     for (let i = 0; i <= N; i++) {
       const p = gcPoint(a, b, i / N);
@@ -688,29 +722,115 @@ td.num, th.num { text-align: right; }
     }
     const lats = pts.map(p => p.lat), lons = pts.map(p => p.lon);
     let minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
-    const span = Math.max(maxLat - minLat, maxLon - minLon, 8), padD = span * 0.22;
-    minLat -= padD; maxLat += padD; minLon -= padD; maxLon += padD;
-    const k = Math.cos(rad((minLat + maxLat) / 2));
-    const wDeg = (maxLon - minLon) * k, hDeg = maxLat - minLat, margin = 28;
-    const s = Math.min((W - margin * 2) / wDeg, (H - margin * 2 - 16) / hDeg);
-    const ox = W / 2 - ((minLon + maxLon) / 2) * k * s, oy = H / 2 + 8 + ((minLat + maxLat) / 2) * s;
-    const P = p => [ox + p.lon * k * s, oy - p.lat * s];
+    const span = Math.max(maxLat - minLat, maxLon - minLon, 6), padD = span * 0.25;
+    minLat = Math.max(-85, minLat - padD); maxLat = Math.min(85, maxLat + padD); minLon -= padD; maxLon += padD;
+    const k = Math.cos(rad((minLat + maxLat) / 2)), margin = 24;
+    const s = Math.min((W - margin * 2) / ((maxLon - minLon) * k), (H - margin * 2 - 20) / (maxLat - minLat));
+    const ox = W / 2 - ((minLon + maxLon) / 2) * k * s, oy = H / 2 + 10 + ((minLat + maxLat) / 2) * s;
+    return { a, b, N, pts, k, s, ox, oy, span, P: p => [ox + p.lon * k * s, oy - p.lat * s],
+             lon0: -ox / (k * s), lon1: (W - ox) / (k * s), lat1: oy / s, lat0: (oy - H) / s };
+  }
+
+  // Static layer (ocean, land, borders, graticule, airports), cached per size and route.
+  let base = null, baseKey = "";
+  function drawBase(v, W, H, dpr, C) {
+    const key = `${W}x${H}@${dpr}:${v.a.code}-${v.b.code}:${!!window.WORLD}`;
+    if (key === baseKey) return base;
+    base = base || document.createElement("canvas");
+    base.width = Math.round(W * dpr); base.height = Math.round(H * dpr);
+    const g = base.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = C.ocean; g.fillRect(0, 0, W, H);
+
+    const w = loadWorld(), X = lon => v.ox + lon * v.k * v.s, Y = lat => v.oy - lat * v.s;
+    if (w) {
+      for (const off of [-360, 0, 360]) {
+        if (v.lon1 < -180 + off || v.lon0 > 180 + off) continue;
+        const vis = b => !(b[2] + off < v.lon0 || b[0] + off > v.lon1 || b[3] < v.lat0 || b[1] > v.lat1);
+        // land
+        g.fillStyle = C.land; g.beginPath();
+        for (const poly of w.polys) {
+          if (!vis(poly.box)) continue;
+          for (const r of poly.rings) {
+            g.moveTo(X(r[0] + off), Y(r[1]));
+            for (let i = 2; i < r.length; i += 2) g.lineTo(X(r[i] + off), Y(r[i + 1]));
+            g.closePath();
+          }
+        }
+        g.fill("evenodd");
+        // coastlines (kind 1) and country borders (kind 2); skip the artificial cut along ±180°
+        for (const kind of ["2", "1"]) {
+          g.beginPath();
+          w.arcs.forEach((arc, ai) => {
+            if (w.kind[ai] !== kind || !vis(w.boxes[ai])) return;
+            for (let i = 0; i < arc.length; i += 2) {
+              const lon = arc[i], prev = arc[i - 2];
+              const cut = i && ((Math.abs(lon) > 179.99 && Math.abs(prev) > 179.99) || Math.abs(lon - prev) > 90);
+              if (!i || cut) g.moveTo(X(lon + off), Y(arc[i + 1])); else g.lineTo(X(lon + off), Y(arc[i + 1]));
+            }
+          });
+          if (kind === "2") { g.strokeStyle = C.border; g.lineWidth = 0.8; g.setLineDash([3, 3]); }
+          else { g.strokeStyle = C.coast; g.lineWidth = 1; g.setLineDash([]); }
+          g.stroke();
+        }
+        g.setLineDash([]);
+      }
+    }
 
     // graticule
-    const step = span > 60 ? 20 : span > 25 ? 10 : 5;
-    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.muted; ctx.font = `10px ${css("--font-mono")}`;
-    const viewMinLon = (0 - ox) / (k * s), viewMaxLon = (W - ox) / (k * s);
-    const viewMaxLat = oy / s, viewMinLat = (oy - H) / s;
-    for (let L = Math.ceil(viewMinLon / step) * step; L <= viewMaxLon; L += step) {
-      const x = ox + L * k * s; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      const lw = ((L % 360) + 540) % 360 - 180; ctx.fillText(`${Math.abs(lw)}°${lw < 0 ? "W" : lw > 0 ? "E" : ""}`, x + 3, H - 6);
+    const step = v.span > 60 ? 20 : v.span > 25 ? 10 : 5;
+    g.strokeStyle = C.grid; g.lineWidth = 1; g.fillStyle = C.muted; g.font = `10px ${css("--font-mono")}`;
+    for (let L = Math.ceil(v.lon0 / step) * step; L <= v.lon1; L += step) {
+      const x = X(L); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
+      const lw = ((L % 360) + 540) % 360 - 180; g.fillText(`${Math.abs(lw)}°${lw < 0 ? "W" : lw > 0 ? "E" : ""}`, x + 3, H - 6);
     }
-    for (let L = Math.ceil(viewMinLat / step) * step; L <= viewMaxLat; L += step) {
-      const y = oy - L * s; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      ctx.fillText(`${Math.abs(L)}°${L < 0 ? "S" : L > 0 ? "N" : ""}`, W - 34, y - 3);
+    for (let L = Math.ceil(v.lat0 / step) * step; L <= v.lat1; L += step) {
+      const y = Y(L); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+      g.fillText(`${Math.abs(L)}°${L < 0 ? "S" : L > 0 ? "N" : ""}`, W - 34, y - 3);
     }
 
-    // route: flown (solid ink) and remaining (dashed magenta)
+    // other airports in view, for orientation
+    g.font = `10px ${css("--font-mono")}`;
+    const taken = [[X(v.pts[0].lon), Y(v.pts[0].lat)], [X(v.pts[v.N].lon), Y(v.pts[v.N].lat)]];
+    for (const ap of AIRPORTS) {
+      if (ap === v.a || ap === v.b) continue;
+      for (const off of [-360, 0, 360]) {
+        const x = X(ap.lon + off), y = Y(ap.lat);
+        if (x < 8 || x > W - 64 || y < 24 || y > H - 20) continue;
+        if (taken.some(([tx, ty]) => Math.abs(tx - x) < 34 && Math.abs(ty - y) < 14)) continue;
+        taken.push([x, y]);
+        g.fillStyle = C.muted; g.beginPath(); g.arc(x, y, 2, 0, Math.PI * 2); g.fill();
+        g.fillText(ap.code, x + 5, y + 3);
+      }
+    }
+
+    // scale bar in nautical miles (1° of latitude = 60 nm)
+    const pxPerNm = v.s / 60, target = 90 / pxPerNm, mag = Math.pow(10, Math.floor(Math.log10(target)));
+    const nm = [1, 2, 5, 10].map(m => m * mag).reverse().find(n => n <= target) || mag, len = nm * pxPerNm;
+    const sx0 = 14, sy0 = H - 24;
+    g.strokeStyle = C.ink; g.lineWidth = 1.5; g.beginPath();
+    g.moveTo(sx0, sy0 - 4); g.lineTo(sx0, sy0); g.lineTo(sx0 + len, sy0); g.lineTo(sx0 + len, sy0 - 4); g.stroke();
+    g.fillStyle = C.ink; g.fillText(`${nm.toLocaleString()} nm`, sx0 + len + 6, sy0 + 3);
+
+    baseKey = key;
+    return base;
+  }
+
+  function drawMap(plan, f) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    const dpr = window.devicePixelRatio || 1, W = rect.width, H = rect.height;
+    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    }
+    const C = { ink: css("--ink"), muted: css("--muted"), route: css("--route"), focus: css("--focus"), brk: css("--break"),
+                ocean: css("--ocean"), land: css("--land"), coast: css("--coast"), border: css("--border"), grid: css("--grid") };
+    const v = mapView(plan, W, H), { pts, N, P } = v;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(drawBase(v, W, H, dpr, C), 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // route: flown (solid) and remaining (dashed magenta)
     const cut = Math.round(f * N);
     ctx.lineWidth = 2.5; ctx.lineCap = "round";
     ctx.setLineDash([7, 6]); ctx.strokeStyle = C.route; ctx.beginPath();
@@ -720,15 +840,18 @@ td.num, th.num { text-align: right; }
 
     // break waypoints along the route
     plan.segments.filter(sg => sg.type === "break").forEach(sg => {
-      const p = pts[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)], [x, y] = P(p);
-      ctx.fillStyle = C.brk; ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill();
+      const [x, y] = P(pts[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)]);
+      ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); ctx.stroke();
     });
 
-    // airports
+    // origin and destination
     ctx.font = `700 13px ${css("--font-mono")}`;
-    [[pts[0], a.code], [pts[N], b.code]].forEach(([p, code]) => {
+    [[pts[0], v.a.code], [pts[N], v.b.code]].forEach(([p, code]) => {
       const [x, y] = P(p);
-      ctx.strokeStyle = C.focus; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = C.ocean; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = C.focus; ctx.lineWidth = 2; ctx.stroke();
+      ctx.lineWidth = 3; ctx.strokeStyle = C.ocean; ctx.strokeText(code, x + 10, y - 8);
       ctx.fillStyle = C.ink; ctx.fillText(code, x + 10, y - 8);
     });
 
@@ -739,7 +862,7 @@ td.num, th.num { text-align: right; }
     const h0 = P(pts[Math.min(N - 1, i0)]), h1 = P(pts[Math.min(N, i0 + 1)]);
     const ang = Math.atan2(h1[1] - h0[1], h1[0] - h0[0]);
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
-    ctx.fillStyle = C.brk; ctx.strokeStyle = C.bg; ctx.lineWidth = 1.5;
+    ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(12, 0); ctx.lineTo(4, 2); ctx.lineTo(-1, 10); ctx.lineTo(-4, 10); ctx.lineTo(-1, 2); ctx.lineTo(-8, 2);
     ctx.lineTo(-11, 6); ctx.lineTo(-13, 6); ctx.lineTo(-11, 0); ctx.lineTo(-13, -6); ctx.lineTo(-11, -6); ctx.lineTo(-8, -2);
