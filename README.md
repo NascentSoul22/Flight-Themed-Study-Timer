@@ -6,7 +6,7 @@
 
 Open `index.html` in any browser. There's no build step and no dependencies. Keep `geo/world.js` next to it, because that file holds the map data.
 
-1. **File a flight plan.** Pick From and To. The block time comes from the great-circle distance (cruise around 830 km/h plus 30 min for taxi, climb and approach). You can change the hours and minutes if you want a different session length.
+1. **File a flight plan.** Pick From and To from 217 airports, grouped by region: East and Southeast Asia, the Philippines, South Asia, the Middle East, Central Asia and the Caucasus, Europe, Africa, North America, Central America and the Caribbean, South America and Oceania. The block time comes from the great-circle distance (cruise around 830 km/h plus 30 min for taxi, climb and approach). You can change the hours and minutes if you want a different session length.
 2. **Set your rhythm.** Add your name for the ticket. The defaults are 50 min study blocks with 10 min breaks. The last study block runs until landing.
 3. **Print my ticket.** An automatically generated ticket appears, with your name, flight number, gate, seat, departure and arrival times, the study itinerary and a barcode. Press **Board & depart**, or it boards by itself after 30 seconds. **Change flight** takes you back to the planner.
 4. **In flight.** The flight deck shows:
@@ -19,7 +19,7 @@ Open `index.html` in any browser. There's no build step and no dependencies. Kee
      - land is colored by climate (rainforest, desert, forest, tundra, ice), oceans get depth and sun glare, and day and night follow the real position of the sun
      - a shaded 3D airliner model with a gold tail and blinking navigation lights (red left, green right, white strobe). It pitches nose-up in the climb and down on descent, and casts a shadow on the ground
      - real coastlines and borders, nearby airports, gold diamonds for breaks, and a nautical-mile scale bar
-5. A cabin chime plays when the sign changes and when you land. If you allow notifications, you also get one.
+5. A two-note cabin chime (rising for study, falling for a break) plays when the sign changes and when you land. If you allow notifications, you also get one.
 
 Controls: **Enter holding** pauses (or press Space), **Skip to next** jumps to the next block, **Divert** ends the flight early. Every flight is saved in the **Pilot logbook** with the study time you put in. If you reload the page mid-flight, the flight carries on where it was.
 
@@ -32,3 +32,34 @@ All data stays in your browser's local storage.
 The page is set in Times New Roman. Where that font isn't installed, it uses Tinos from Google Fonts, which has the same letter widths.
 
 The look is a twilight first-class cabin: an indigo-to-sunset sky, frosted-glass panels and champagne-gold details.
+
+## Chime volume
+
+The **Chime** control in the header sets how the study and break changes sound:
+
+| Setting | What you hear |
+|---|---|
+| Off | Nothing |
+| Soft | One quiet chime |
+| Normal | The chime twice |
+| Loud | The chime three times at full volume |
+
+Notes fade in gently, so even Loud never starts with a sudden click. Picking a setting plays a sample.
+
+## Ranks, challenges and rankings
+
+- **Pilot rank:** you go up a rank as your total study grows, from Cadet through Private Pilot, First Officer and Captain up to Ace of the Skies. An epaulette shows the stripes, with a progress bar to the next rank.
+- **Streaks:** your current and best daily streak. A day counts when you study at least 25 minutes.
+- **Challenges:** 18 in total.
+  - daily and weekly goals
+  - streaks
+  - milestones: Long haul, Red-eye, Early bird, Clean record
+  - exploration: Island hopper (Philippines), Grand tour (Europe), Into Africa, Silk Road (Central Asia), Isthmus run (Central America), Six continents
+  - Centurion, for 100 hours of study
+
+  Newly completed challenges and promotions show when you land.
+- **Rankings:** this week and all time.
+
+## Where your history is kept
+
+Every flight is saved in the browser. When the page is opened as the published claude.ai artifact while signed in, history is also saved to the person's private part of the artifact's database. That means it comes back whenever they reopen the link, even on another device. A summary row is also saved to a shared leaderboard that everyone on the page can see.

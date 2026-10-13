@@ -262,6 +262,65 @@ button, input, select { font: inherit; color: inherit; }
   .t-route .code { font-size: 52px; }
 }
 
+/* Sound control */
+.top-right { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+.sound {
+  display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 14px; border-radius: 14px;
+  background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); flex-wrap: wrap;
+}
+.sound .label { margin-right: 6px; }
+.sound button { background: none; border: 1px solid transparent; border-radius: 999px; padding: 4px 11px; cursor: pointer; color: var(--muted); font-size: 14px; }
+.sound button:hover { color: var(--ink); border-color: var(--line); }
+.sound button[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; }
+
+/* Career */
+.career { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
+.career .challenges { grid-column: 1 / -1; }
+.rank-card { display: grid; gap: 14px; }
+.rank-row { display: flex; align-items: center; gap: 16px; }
+.epaulette svg { display: block; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .4)); }
+.rank-card h2 { font-size: 32px; }
+.rank-sub, .rank-next { color: var(--muted); font-size: 15px; font-style: italic; }
+.meter { height: 6px; border-radius: 999px; background: rgba(8, 6, 24, .55); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5); }
+.meter i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--gold-2), #fbe3a8); box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 60%, transparent); }
+.big-meter { height: 10px; }
+.career-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.career-stats > div { background: rgba(8, 6, 24, .4); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; display: grid; gap: 2px; }
+.career-stats .label { font-size: 10px; }
+.career-stats b { font-weight: 400; font-size: 19px; font-variant-numeric: tabular-nums; }
+.board { display: grid; gap: 12px; }
+.board-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(8, 6, 24, .45); border: 1px solid var(--line); }
+.tabs button { background: none; border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; color: var(--muted); font-size: 14px; }
+.tabs button[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; }
+.board-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.b-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(8, 6, 24, .35); border: 1px solid transparent; }
+.b-row.me { border-color: color-mix(in srgb, var(--gold) 55%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 14%, transparent), rgba(8, 6, 24, .35)); }
+.b-pos { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.top1 .b-pos { background: linear-gradient(180deg, #fbe3a8, #c08f45); color: #21162e; border: 0; }
+.top2 .b-pos { background: linear-gradient(180deg, #eef0f6, #9aa2b8); color: #21162e; border: 0; }
+.top3 .b-pos { background: linear-gradient(180deg, #f0c3a0, #a0613a); color: #21162e; border: 0; }
+.b-who { display: grid; min-width: 0; }
+.b-who b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-who small { color: var(--muted); font-style: italic; font-size: 13px; }
+.b-val { font-size: 18px; font-variant-numeric: tabular-nums; }
+.board-note { margin: 0; color: var(--muted); font-size: 14px; font-style: italic; }
+.ch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ch { display: grid; gap: 8px; align-content: start; padding: 14px; border-radius: 14px; background: rgba(8, 6, 24, .38); border: 1px solid var(--line); }
+.ch.done { border-color: color-mix(in srgb, var(--gold) 50%, transparent); background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 14%, transparent), rgba(8, 6, 24, .38)); }
+.ch-top { display: flex; gap: 10px; align-items: center; }
+.ch-top b { display: block; font-size: 17px; }
+.ch-medal { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1.5px dashed rgba(255, 255, 255, .25); color: #21162e; font-weight: 700; }
+.ch.done .ch-medal { border: 0; background: linear-gradient(180deg, #fbe3a8, var(--gold-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 50%, transparent); }
+.ch-kind { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--focus); }
+.ch p { margin: 0; color: var(--muted); font-size: 14px; }
+.ch-prog { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ch.done .ch-prog { color: var(--gold); }
+.awards { display: flex; gap: 8px; flex-wrap: wrap; }
+.award { padding: 5px 14px; border-radius: 999px; font-size: 15px; border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--ink); }
+.award.rank { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border: 0; }
+.award.streak { border-color: color-mix(in srgb, var(--focus) 55%, transparent); background: color-mix(in srgb, var(--focus) 12%, transparent); }
+
 /* Logbook */
 .logbook { display: grid; gap: 14px; }
 .logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -279,7 +338,8 @@ td.num, th.num { text-align: right; }
 .clear.armed { color: var(--warn); }
 
 @media (max-width: 780px) {
-  .planner, .deck { grid-template-columns: 1fr; }
+  .planner, .deck, .career { grid-template-columns: 1fr; }
+  .career-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pass-route .code { font-size: 48px; }
   .nd canvas { min-height: 300px; }
@@ -307,7 +367,16 @@ td.num, th.num { text-align: right; }
         <span class="tag">Your flight time is your study time</span>
       </div>
     </div>
-    <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
+    <div class="top-right">
+      <div class="sound" role="group" aria-label="Chime volume for study and break changes">
+        <span class="label">Chime</span>
+        <button type="button" data-sound="off" aria-pressed="false">Off</button>
+        <button type="button" data-sound="soft" aria-pressed="false">Soft</button>
+        <button type="button" data-sound="normal" aria-pressed="false">Normal</button>
+        <button type="button" data-sound="loud" aria-pressed="false">Loud</button>
+      </div>
+      <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
+    </div>
   </header>
 
   <!-- PLANNER -->
@@ -492,7 +561,42 @@ td.num, th.num { text-align: right; }
     <span class="label" id="lTag">Landed</span>
     <h2 id="lTitle">Welcome to Seoul</h2>
     <p id="lText"></p>
+    <div class="awards" id="lAwards" hidden></div>
     <div class="controls"><button type="button" class="btn primary" id="again">Plan the next flight</button></div>
+  </section>
+
+  <!-- CAREER -->
+  <section class="career" id="career" aria-label="Pilot career">
+    <div class="panel rank-card">
+      <span class="label">Pilot rank</span>
+      <div class="rank-row">
+        <div id="epaulette" class="epaulette"></div>
+        <div><h2 id="rankTitle">Cadet</h2><div class="rank-sub" id="rankSub"></div></div>
+      </div>
+      <div class="meter big-meter"><i id="rankBar"></i></div>
+      <div class="rank-next" id="rankNext"></div>
+      <div class="career-stats">
+        <div><span class="label">Streak</span><b id="cStreak">0 days</b></div>
+        <div><span class="label">Best streak</span><b id="cBest">0 days</b></div>
+        <div><span class="label">Today</span><b id="cToday">0h 00m</b></div>
+        <div><span class="label">This week</span><b id="cWeek">0h 00m</b></div>
+      </div>
+    </div>
+    <div class="panel board">
+      <div class="board-head">
+        <h2>Rankings</h2>
+        <div class="tabs" role="group" aria-label="Ranking period">
+          <button type="button" data-board="week" aria-pressed="true">This week</button>
+          <button type="button" data-board="all" aria-pressed="false">All time</button>
+        </div>
+      </div>
+      <ol class="board-list" id="boardList"></ol>
+      <p class="board-note" id="boardNote"></p>
+    </div>
+    <div class="panel challenges">
+      <div class="board-head"><h2>Challenges</h2><span class="label" id="chCount"></span></div>
+      <div class="ch-grid" id="chGrid"></div>
+    </div>
   </section>
 
   <!-- LOGBOOK -->
@@ -510,27 +614,75 @@ td.num, th.num { text-align: right; }
 <script>
 (() => {
   // ---------- Data ----------
-  const AIRPORTS = [
-    ["HND","Tokyo Haneda",35.5494,139.7798],["NRT","Tokyo Narita",35.7720,140.3929],["KIX","Osaka Kansai",34.4320,135.2304],
-    ["CTS","Sapporo",42.7752,141.6923],["OKA","Okinawa",26.1958,127.6459],["ICN","Seoul Incheon",37.4602,126.4407],
-    ["PEK","Beijing",40.0799,116.6031],["PVG","Shanghai",31.1443,121.8083],["HKG","Hong Kong",22.3080,113.9185],
-    ["TPE","Taipei",25.0797,121.2342],["MNL","Manila",14.5086,121.0194],["CRK","Clark",15.1860,120.5603],["LAO","Laoag",18.1781,120.5317],
-    ["CEB","Cebu",10.3075,123.9794],["TAG","Bohol Panglao",9.5664,123.7753],["ILO","Iloilo",10.8330,122.4934],
-    ["BCD","Bacolod",10.7764,123.0150],["MPH","Boracay Caticlan",11.9245,121.9540],["KLO","Kalibo",11.6794,122.3763],
-    ["PPS","Puerto Princesa",9.7421,118.7590],["TAC","Tacloban",11.2276,125.0278],["IAO","Siargao",9.8591,126.0140],
-    ["CGY","Cagayan de Oro",8.6122,124.4561],["DVO","Davao",7.1255,125.6458],["GES","General Santos",6.0580,125.0960],
-    ["ZAM","Zamboanga",6.9224,122.0596],["BKK","Bangkok",13.6900,100.7501],
-    ["SIN","Singapore",1.3644,103.9915],["KUL","Kuala Lumpur",2.7456,101.7072],["DEL","Delhi",28.5562,77.1000],
-    ["BOM","Mumbai",19.0896,72.8656],["DXB","Dubai",25.2532,55.3657],["DOH","Doha",25.2731,51.6081],
-    ["IST","Istanbul",41.2753,28.7519],["CAI","Cairo",30.1219,31.4056],["NBO","Nairobi",-1.3192,36.9278],
-    ["JNB","Johannesburg",-26.1392,28.2460],["LOS","Lagos",6.5774,3.3213],["LHR","London Heathrow",51.4700,-0.4543],
-    ["CDG","Paris",49.0097,2.5479],["AMS","Amsterdam",52.3105,4.7683],["FRA","Frankfurt",50.0379,8.5622],
-    ["MAD","Madrid",40.4983,-3.5676],["FCO","Rome",41.8003,12.2389],["JFK","New York JFK",40.6413,-73.7781],
-    ["ORD","Chicago",41.9742,-87.9073],["MIA","Miami",25.7959,-80.2870],["LAX","Los Angeles",33.9416,-118.4085],
-    ["SFO","San Francisco",37.6213,-122.3790],["SEA","Seattle",47.4502,-122.3088],["HNL","Honolulu",21.3187,-157.9225],
-    ["YYZ","Toronto",43.6777,-79.6248],["MEX","Mexico City",19.4361,-99.0719],["GRU","São Paulo",-23.4356,-46.4731],
-    ["SYD","Sydney",-33.9399,151.1753],["MEL","Melbourne",-37.6690,144.8410],["AKL","Auckland",-37.0082,174.7850]
-  ].map(([code, city, lat, lon]) => ({ code, city, lat, lon }));
+  const REGIONS = {
+    "East Asia": [["HND","Tokyo Haneda",35.5494,139.7798],["NRT","Tokyo Narita",35.7720,140.3929],["KIX","Osaka Kansai",34.4320,135.2304],
+      ["CTS","Sapporo",42.7752,141.6923],["FUK","Fukuoka",33.5859,130.4511],["OKA","Okinawa",26.1958,127.6459],["ICN","Seoul Incheon",37.4602,126.4407],
+      ["PUS","Busan",35.1796,128.9382],["PEK","Beijing",40.0799,116.6031],["PVG","Shanghai",31.1443,121.8083],["CAN","Guangzhou",23.3924,113.2988],
+      ["CTU","Chengdu",30.5785,103.9471],["HKG","Hong Kong",22.3080,113.9185],["TPE","Taipei",25.0797,121.2342],["UBN","Ulaanbaatar",47.6469,106.8195]],
+    "Southeast Asia": [["BKK","Bangkok",13.6900,100.7501],["SIN","Singapore",1.3644,103.9915],["KUL","Kuala Lumpur",2.7456,101.7072],
+      ["CGK","Jakarta",-6.1256,106.6559],["DPS","Bali Denpasar",-8.7482,115.1672],["SGN","Ho Chi Minh City",10.8188,106.6519],
+      ["HAN","Hanoi",21.2212,105.8072],["RGN","Yangon",16.9073,96.1332],["PNH","Phnom Penh",11.5466,104.8441]],
+    "Philippines": [["MNL","Manila",14.5086,121.0194],["CRK","Clark",15.1860,120.5603],["LAO","Laoag",18.1781,120.5317],
+      ["CEB","Cebu",10.3075,123.9794],["TAG","Bohol Panglao",9.5664,123.7753],["ILO","Iloilo",10.8330,122.4934],
+      ["BCD","Bacolod",10.7764,123.0150],["MPH","Boracay Caticlan",11.9245,121.9540],["KLO","Kalibo",11.6794,122.3763],
+      ["PPS","Puerto Princesa",9.7421,118.7590],["TAC","Tacloban",11.2276,125.0278],["IAO","Siargao",9.8591,126.0140],
+      ["CGY","Cagayan de Oro",8.6122,124.4561],["DVO","Davao",7.1255,125.6458],["GES","General Santos",6.0580,125.0960],
+      ["ZAM","Zamboanga",6.9224,122.0596]],
+    "South Asia": [["DEL","Delhi",28.5562,77.1000],["BOM","Mumbai",19.0896,72.8656],["BLR","Bengaluru",13.1986,77.7066],
+      ["MAA","Chennai",12.9941,80.1709],["CCU","Kolkata",22.6547,88.4467],["CMB","Colombo",7.1808,79.8841],["KTM","Kathmandu",27.6966,85.3591],
+      ["DAC","Dhaka",23.8433,90.3978],["MLE","Malé",4.1918,73.5290],["KHI","Karachi",24.9065,67.1608],["ISB","Islamabad",33.5490,72.8258]],
+    "Middle East": [["DXB","Dubai",25.2532,55.3657],["AUH","Abu Dhabi",24.4330,54.6511],["DOH","Doha",25.2731,51.6081],
+      ["BAH","Bahrain",26.2708,50.6336],["KWI","Kuwait",29.2266,47.9689],["MCT","Muscat",23.5933,58.2844],["RUH","Riyadh",24.9576,46.6988],
+      ["JED","Jeddah",21.6796,39.1565],["AMM","Amman",31.7226,35.9932],["TLV","Tel Aviv",32.0055,34.8854],["BEY","Beirut",33.8209,35.4884],
+      ["IKA","Tehran",35.4161,51.1522]],
+    "Central Asia & Caucasus": [["TAS","Tashkent",41.2579,69.2812],["SKD","Samarkand",39.7005,66.9838],["ALA","Almaty",43.3521,77.0405],
+      ["NQZ","Astana",51.0222,71.4669],["FRU","Bishkek",43.0613,74.4776],["DYU","Dushanbe",38.5433,68.8250],["ASB","Ashgabat",37.9868,58.3610],
+      ["GYD","Baku",40.4675,50.0467],["TBS","Tbilisi",41.6692,44.9547],["EVN","Yerevan",40.1473,44.3959]],
+    "Europe": [["LHR","London Heathrow",51.4700,-0.4543],["MAN","Manchester",53.3537,-2.2750],["EDI","Edinburgh",55.9500,-3.3725],
+      ["DUB","Dublin",53.4213,-6.2701],["CDG","Paris",49.0097,2.5479],["NCE","Nice",43.6584,7.2159],["AMS","Amsterdam",52.3105,4.7683],
+      ["BRU","Brussels",50.9010,4.4844],["FRA","Frankfurt",50.0379,8.5622],["MUC","Munich",48.3538,11.7861],["BER","Berlin",52.3667,13.5033],
+      ["ZRH","Zurich",47.4582,8.5555],["GVA","Geneva",46.2381,6.1090],["VIE","Vienna",48.1103,16.5697],["PRG","Prague",50.1008,14.2600],
+      ["BUD","Budapest",47.4298,19.2611],["WAW","Warsaw",52.1657,20.9671],["KRK","Kraków",50.0777,19.7848],["CPH","Copenhagen",55.6180,12.6508],
+      ["OSL","Oslo",60.1976,11.1004],["ARN","Stockholm",59.6498,17.9238],["HEL","Helsinki",60.3172,24.9633],["KEF","Reykjavík",63.9850,-22.6056],
+      ["TLL","Tallinn",59.4133,24.8328],["RIX","Riga",56.9236,23.9711],["VNO","Vilnius",54.6341,25.2858],["MAD","Madrid",40.4983,-3.5676],
+      ["BCN","Barcelona",41.2974,2.0833],["PMI","Palma de Mallorca",39.5517,2.7388],["AGP","Málaga",36.6749,-4.4991],["LIS","Lisbon",38.7742,-9.1342],
+      ["OPO","Porto",41.2481,-8.6814],["FCO","Rome",41.8003,12.2389],["MXP","Milan",45.6306,8.7281],["VCE","Venice",45.5053,12.3519],
+      ["NAP","Naples",40.8860,14.2908],["ATH","Athens",37.9364,23.9445],["ZAG","Zagreb",45.7429,16.0688],["DBV","Dubrovnik",42.5614,18.2682],
+      ["BEG","Belgrade",44.8184,20.3091],["OTP","Bucharest",44.5711,26.0850],["SOF","Sofia",42.6967,23.4114],["KBP","Kyiv",50.3450,30.8947],
+      ["IST","Istanbul",41.2753,28.7519],["AYT","Antalya",36.8987,30.8005],["LCA","Larnaca",34.8751,33.6249],["MLA","Malta",35.8575,14.4775]],
+    "Africa": [["CAI","Cairo",30.1219,31.4056],["LXR","Luxor",25.6710,32.7066],["HRG","Hurghada",27.1783,33.7994],["CMN","Casablanca",33.3675,-7.5898],
+      ["RAK","Marrakech",31.6069,-8.0363],["ALG","Algiers",36.6910,3.2154],["TUN","Tunis",36.8510,10.2272],["KRT","Khartoum",15.5895,32.5532],
+      ["ADD","Addis Ababa",8.9779,38.7993],["NBO","Nairobi",-1.3192,36.9278],["MBA","Mombasa",-4.0348,39.5942],["EBB","Entebbe",0.0424,32.4435],
+      ["KGL","Kigali",-1.9686,30.1395],["DAR","Dar es Salaam",-6.8781,39.2026],["ZNZ","Zanzibar",-6.2220,39.2249],["JRO","Kilimanjaro",-3.4294,37.0745],
+      ["LOS","Lagos",6.5774,3.3213],["ABV","Abuja",9.0068,7.2632],["ACC","Accra",5.6052,-0.1668],["ABJ","Abidjan",5.2614,-3.9263],
+      ["DSS","Dakar",14.6700,-17.0733],["BKO","Bamako",12.5335,-7.9499],["DLA","Douala",4.0061,9.7195],["NSI","Yaoundé",3.7226,11.5533],
+      ["LBV","Libreville",0.4586,9.4123],["FIH","Kinshasa",-4.3858,15.4446],["BGF","Bangui",4.3985,18.5188],["NDJ","N'Djamena",12.1337,15.0340],
+      ["LAD","Luanda",-8.8584,13.2312],["LUN","Lusaka",-15.3308,28.4526],["HRE","Harare",-17.9318,31.0928],["VFA","Victoria Falls",-18.0959,25.8390],
+      ["LLW","Lilongwe",-13.7894,33.7810],["MPM","Maputo",-25.9208,32.5726],["JNB","Johannesburg",-26.1392,28.2460],["CPT","Cape Town",-33.9715,18.6021],
+      ["DUR","Durban",-29.6144,31.1197],["WDH","Windhoek",-22.4799,17.4709],["GBE","Gaborone",-24.5552,25.9182],["TNR","Antananarivo",-18.7969,47.4788],
+      ["MRU","Mauritius",-20.4302,57.6836],["SEZ","Seychelles",-4.6743,55.5218]],
+    "North America": [["JFK","New York JFK",40.6413,-73.7781],["BOS","Boston",42.3656,-71.0096],["IAD","Washington Dulles",38.9531,-77.4565],
+      ["ATL","Atlanta",33.6407,-84.4277],["ORD","Chicago",41.9742,-87.9073],["DFW","Dallas",32.8998,-97.0403],["DEN","Denver",39.8561,-104.6737],
+      ["MIA","Miami",25.7959,-80.2870],["LAS","Las Vegas",36.0840,-115.1537],["LAX","Los Angeles",33.9416,-118.4085],["SFO","San Francisco",37.6213,-122.3790],
+      ["SEA","Seattle",47.4502,-122.3088],["ANC","Anchorage",61.1743,-149.9963],["HNL","Honolulu",21.3187,-157.9225],["YYZ","Toronto",43.6777,-79.6248],
+      ["YUL","Montréal",45.4706,-73.7408],["YVR","Vancouver",49.1967,-123.1815],["MEX","Mexico City",19.4361,-99.0719]],
+    "Central America & Caribbean": [["CUN","Cancún",21.0365,-86.8771],["BZE","Belize City",17.5391,-88.3082],["GUA","Guatemala City",14.5833,-90.5275],
+      ["SAL","San Salvador",13.4409,-89.0557],["SAP","San Pedro Sula",15.4526,-87.9236],["MGA","Managua",12.1415,-86.1682],["SJO","San José",9.9939,-84.2088],
+      ["LIR","Liberia (Costa Rica)",10.5933,-85.5444],["PTY","Panama City",9.0714,-79.3835],["HAV","Havana",22.9892,-82.4091],["NAS","Nassau",25.0390,-77.4662],
+      ["KIN","Kingston",17.9357,-76.7875],["SDQ","Santo Domingo",18.4297,-69.6689],["PUJ","Punta Cana",18.5674,-68.3634],["SJU","San Juan",18.4394,-66.0018]],
+    "South America": [["BOG","Bogotá",4.7016,-74.1469],["MDE","Medellín",6.1645,-75.4231],["CCS","Caracas",10.6031,-66.9906],["UIO","Quito",-0.1292,-78.3575],
+      ["LIM","Lima",-12.0219,-77.1143],["CUZ","Cusco",-13.5357,-71.9388],["LPB","La Paz",-16.5133,-68.1923],["SCL","Santiago",-33.3930,-70.7858],
+      ["EZE","Buenos Aires",-34.8222,-58.5358],["MVD","Montevideo",-34.8384,-56.0308],["GRU","São Paulo",-23.4356,-46.4731],["GIG","Rio de Janeiro",-22.8090,-43.2506]],
+    "Oceania": [["SYD","Sydney",-33.9399,151.1753],["MEL","Melbourne",-37.6690,144.8410],["BNE","Brisbane",-27.3942,153.1218],["PER","Perth",-31.9385,115.9672],
+      ["AKL","Auckland",-37.0082,174.7850],["CHC","Christchurch",-43.4894,172.5320],["NAN","Fiji Nadi",-17.7554,177.4434],["PPT","Tahiti",-17.5537,-149.6073],
+      ["POM","Port Moresby",-9.4434,147.2200],["GUM","Guam",13.4834,144.7960]]
+  };
+  // continent of each region, for the "Six continents" challenge
+  const CONTINENT = { "East Asia": "Asia", "Southeast Asia": "Asia", "Philippines": "Asia", "South Asia": "Asia", "Middle East": "Asia",
+    "Central Asia & Caucasus": "Asia", "Europe": "Europe", "Africa": "Africa", "North America": "North America",
+    "Central America & Caribbean": "North America", "South America": "South America", "Oceania": "Oceania" };
+  const AIRPORTS = Object.entries(REGIONS).flatMap(([region, list]) =>
+    list.map(([code, city, lat, lon]) => ({ code, city, lat, lon, region })));
   const byCode = Object.fromEntries(AIRPORTS.map(a => [a.code, a]));
 
   const CRUISE_KMH = 830;      // typical jet cruise ground speed
@@ -587,27 +739,54 @@ td.num, th.num { text-align: right; }
   function flightNo() { return "SF " + (100 + Math.floor(Math.random() * 900)); }
 
   // ---------- Audio: cabin chimes ----------
-  let actx = null;
+  // Two-note cabin chimes, played through a compressor so "Loud" is clearly audible without clipping.
+  // Every note fades in over 40 ms, so even the loudest setting never starts with a hard click.
+  const SOUND_LEVELS = { off: 0, soft: 0.25, normal: 0.6, loud: 1.4 };
+  const SOUND_REPEATS = { off: 0, soft: 1, normal: 2, loud: 3 };
+  let soundLevel = store.get("sfd.sound", "normal");
+  if (!(soundLevel in SOUND_LEVELS)) soundLevel = "normal";
+  let actx = null, master = null;
   function initAudio() {
-    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) { actx = null; }
+    try {
+      if (!actx) {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        const comp = actx.createDynamicsCompressor();
+        comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.25;
+        master = actx.createGain(); master.connect(comp).connect(actx.destination);
+      }
+      if (actx.state === "suspended") actx.resume();
+    } catch (e) { actx = null; }
   }
   function tone(freq, at, dur) {
-    const o = actx.createOscillator(), g = actx.createGain();
-    o.type = "sine"; o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(0.25, at + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-    o.connect(g).connect(actx.destination); o.start(at); o.stop(at + dur + 0.05);
+    // a soft bell: the fundamental plus a quieter octave and fifth
+    for (const [mult, amp] of [[1, 0.5], [2, 0.16], [3, 0.06]]) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = freq * mult;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(amp, at + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur / mult);
+      o.connect(g).connect(master); o.start(at); o.stop(at + dur + 0.05);
+    }
   }
-  function chime(kind) {
-    if (!actx) return;
+  function chime(kind, level = soundLevel) {
+    if (!actx || !SOUND_LEVELS[level]) return;
     try {
-      const t = actx.currentTime + 0.05;
-      if (kind === "break") { tone(1046, t, 1.2); }                         // single high ding: seatbelt off
-      else if (kind === "focus") { tone(659, t, 1.4); }                     // single low bong: seatbelt on
-      else { tone(784, t, 0.9); tone(988, t + 0.45, 0.9); tone(1318, t + 0.9, 1.6); } // landed
+      master.gain.setValueAtTime(SOUND_LEVELS[level], actx.currentTime);
+      const t0 = actx.currentTime + 0.05, gap = kind === "land" ? 2.4 : 1.7;
+      for (let r = 0; r < SOUND_REPEATS[level]; r++) {
+        const t = t0 + r * gap;
+        if (kind === "break") { tone(988, t, 1.3); tone(784, t + 0.55, 1.6); }        // ding-dong, falling: relax
+        else if (kind === "focus") { tone(659, t, 1.3); tone(880, t + 0.55, 1.6); }   // dong-ding, rising: back to work
+        else { tone(784, t, 1); tone(988, t + 0.4, 1); tone(1175, t + 0.8, 1.8); }     // landed
+      }
     } catch (e) {}
   }
+  function setSound(level) {
+    soundLevel = level; store.set("sfd.sound", level);
+    document.querySelectorAll("[data-sound]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sound === level)));
+  }
+  document.querySelectorAll("[data-sound]").forEach(b => b.addEventListener("click", () => { initAudio(); setSound(b.dataset.sound); chime("focus", b.dataset.sound); }));
+  setSound(soundLevel);
   function notify(title, body) {
     try { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body }); } catch (e) {}
   }
@@ -640,7 +819,8 @@ td.num, th.num { text-align: right; }
   // ---------- Planner ----------
   const fromSel = $("from"), toSel = $("to");
   for (const sel of [fromSel, toSel]) {
-    sel.innerHTML = AIRPORTS.map(a => `<option value="${a.code}">${a.code} · ${a.city}</option>`).join("");
+    sel.innerHTML = Object.keys(REGIONS).map(r => `<optgroup label="${r}">` +
+      AIRPORTS.filter(a => a.region === r).map(a => `<option value="${a.code}">${a.code} · ${a.city}</option>`).join("") + "</optgroup>").join("");
   }
 
   function syncForm() {
@@ -855,8 +1035,14 @@ td.num, th.num { text-align: right; }
     const study = focusDoneMin(plan, el);
     const entry = { date: Date.now(), flightNo: plan.flightNo, from: plan.from, to: plan.to,
                     blockMin: Math.round(el), studyMin: Math.round(study), diverted };
-    logbook.unshift(entry); store.set("sfd.logbook", logbook);
-    lastLanding = entry;
+    const before = careerStats(logbook), doneBefore = doneSet(before);
+    logbook.unshift(entry); logbook = logbook.slice(0, LOG_MAX); store.set("sfd.logbook", logbook);
+    const after = careerStats(logbook), rb = rankFor(before.totalMin).r, ra = rankFor(after.totalMin).r;
+    lastLanding = Object.assign({}, entry, {
+      newChallenges: CHALLENGES.filter(c => doneSet(after).has(c.id) && !doneBefore.has(c.id)).map(c => c.title),
+      promotedTo: ra !== rb ? ra.title : null, streak: after.streak
+    });
+    syncCloud();
     flight = null; store.set("sfd.active", null);
     releaseWake();
     if (!diverted) { chime("land"); notify("Landed", `Welcome to ${byCode[plan.to].city}. ${fmtHM(study)} of study logged.`); }
@@ -1534,6 +1720,12 @@ td.num, th.num { text-align: right; }
     $("lText").innerHTML = e.diverted
       ? `You ended ${e.from}→${e.to} early after ${fmtHM(e.blockMin)}. <b>${fmtHM(e.studyMin)}</b> of study still goes in your logbook.`
       : `You flew ${e.from}→${e.to} in ${fmtHM(e.blockMin)} and studied for <b>${fmtHM(e.studyMin)}</b>. Stretch your legs before the next departure.`;
+    const aw = [];
+    if (e.promotedTo) aw.push(`<span class="award rank">Promoted to ${e.promotedTo}</span>`);
+    for (const t of e.newChallenges || []) aw.push(`<span class="award">Challenge complete: ${t}</span>`);
+    if (e.streak > 1) aw.push(`<span class="award streak">${e.streak}-day streak</span>`);
+    $("lAwards").innerHTML = aw.join("");
+    $("lAwards").hidden = !aw.length;
   }
 
   function renderLog() {
@@ -1557,9 +1749,211 @@ td.num, th.num { text-align: right; }
       return;
     }
     clearTimeout(clearArmed); clearArmed = null; btn.classList.remove("armed"); btn.textContent = "Clear logbook";
-    logbook = []; store.set("sfd.logbook", logbook); renderLog();
+    logbook = []; store.set("sfd.logbook", logbook); renderLog(); renderCareer(); syncCloud();
   });
   $("again").addEventListener("click", () => { lastLanding = null; showView(); });
+
+  // ---------- Pilot career: ranks, challenges, rankings ----------
+  const STREAK_MIN = 25;   // minutes of study that count a day toward a streak
+  const LOG_MAX = 600;     // flights kept in history
+  const RANKS = [
+    { min: 0, title: "Cadet", stripes: 1 }, { min: 120, title: "Student Pilot", stripes: 1 },
+    { min: 300, title: "Private Pilot", stripes: 2 }, { min: 600, title: "First Officer", stripes: 2 },
+    { min: 1200, title: "Senior First Officer", stripes: 3 }, { min: 2400, title: "Captain", stripes: 4 },
+    { min: 4800, title: "Senior Captain", stripes: 4, star: 1 }, { min: 9000, title: "Chief Pilot", stripes: 4, star: 2 },
+    { min: 15000, title: "Ace of the Skies", stripes: 4, star: 3 }
+  ];
+  function rankFor(min) {
+    let i = 0; while (i < RANKS.length - 1 && min >= RANKS[i + 1].min) i++;
+    const r = RANKS[i], next = RANKS[i + 1] || null;
+    return { i, r, next, pct: next ? (min - r.min) / (next.min - r.min) : 1 };
+  }
+  const CHALLENGES = [
+    { id: "today", kind: "Daily", title: "Daily flight", desc: "Study 60 minutes today", target: 60, unit: "min", val: s => s.todayMin },
+    { id: "week", kind: "Weekly", title: "Weekly goal", desc: "Study 5 hours this week", target: 300, unit: "h", val: s => s.weekMin },
+    { id: "first", title: "First flight", desc: "Land your first flight", target: 1, val: s => s.landed },
+    { id: "ten", title: "Ten sectors", desc: "Land 10 flights", target: 10, val: s => s.landed },
+    { id: "streak3", kind: "Streak", title: "On a roll", desc: `Study ${STREAK_MIN}+ minutes a day, 3 days in a row`, target: 3, unit: "days", val: s => s.bestStreak },
+    { id: "streak7", kind: "Streak", title: "Full week", desc: "Keep a 7-day study streak", target: 7, unit: "days", val: s => s.bestStreak },
+    { id: "streak30", kind: "Streak", title: "Frequent flyer", desc: "Keep a 30-day study streak", target: 30, unit: "days", val: s => s.bestStreak },
+    { id: "longhaul", title: "Long haul", desc: "Study 3 hours on a single flight", target: 180, unit: "h", val: s => s.longest },
+    { id: "redeye", title: "Red-eye", desc: "Land a flight that departed between 9 pm and 4 am", target: 1, val: s => s.redeye },
+    { id: "early", title: "Early bird", desc: "Land a flight that departed between 4 am and 7 am", target: 1, val: s => s.early },
+    { id: "clean", title: "Clean record", desc: "Land 5 flights in a row without diverting", target: 5, val: s => s.cleanRun },
+    { id: "islands", kind: "Explore", title: "Island hopper", desc: "Land at 5 different airports in the Philippines", target: 5, val: s => s.region["Philippines"] || 0 },
+    { id: "europe", kind: "Explore", title: "Grand tour", desc: "Land at 8 different airports in Europe", target: 8, val: s => s.region["Europe"] || 0 },
+    { id: "africa", kind: "Explore", title: "Into Africa", desc: "Land at 5 different airports in Africa", target: 5, val: s => s.region["Africa"] || 0 },
+    { id: "silk", kind: "Explore", title: "Silk Road", desc: "Land at 3 airports in Central Asia and the Caucasus", target: 3, val: s => s.region["Central Asia & Caucasus"] || 0 },
+    { id: "isthmus", kind: "Explore", title: "Isthmus run", desc: "Land at 3 airports in Central America and the Caribbean", target: 3, val: s => s.region["Central America & Caribbean"] || 0 },
+    { id: "continents", kind: "Explore", title: "Six continents", desc: "Land on all 6 inhabited continents", target: 6, val: s => s.continents },
+    { id: "century", title: "Centurion", desc: "Log 100 hours of study", target: 6000, unit: "h", val: s => s.totalMin }
+  ];
+
+  const dayKey = t => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const weekKey = t => { const d = new Date(t); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return dayKey(d); };
+
+  function careerStats(log, now = Date.now()) {
+    const s = { totalMin: 0, landed: 0, todayMin: 0, weekMin: 0, weekKey: weekKey(now), streak: 0, bestStreak: 0,
+                longest: 0, redeye: 0, early: 0, cleanRun: 0, region: {}, continents: 0 };
+    const byDay = {}, seen = {}, conts = new Set(), today = dayKey(now);
+    for (const e of log) {
+      s.totalMin += e.studyMin;
+      const dk = dayKey(e.date); byDay[dk] = (byDay[dk] || 0) + e.studyMin;
+      if (dk === today) s.todayMin += e.studyMin;
+      if (weekKey(e.date) === s.weekKey) s.weekMin += e.studyMin;
+      if (e.diverted) continue;
+      s.landed++;
+      s.longest = Math.max(s.longest, e.studyMin);
+      const dep = new Date(e.date - e.blockMin * 60000).getHours();
+      if (dep >= 21 || dep < 4) s.redeye++;
+      if (dep >= 4 && dep < 7) s.early++;
+      const ap = byCode[e.to];
+      if (ap) { (seen[ap.region] = seen[ap.region] || new Set()).add(ap.code); conts.add(CONTINENT[ap.region]); }
+    }
+    for (const r in seen) s.region[r] = seen[r].size;
+    s.continents = conts.size;
+    for (const e of log) { if (e.diverted) break; s.cleanRun++; }   // log is newest first
+    // current streak: consecutive qualifying days ending today (or yesterday, if today has no study yet)
+    const d = new Date(now); if (!((byDay[today] || 0) >= STREAK_MIN)) d.setDate(d.getDate() - 1);
+    while ((byDay[dayKey(d)] || 0) >= STREAK_MIN) { s.streak++; d.setDate(d.getDate() - 1); }
+    const days = Object.keys(byDay).filter(k => byDay[k] >= STREAK_MIN).sort();
+    let run = 0, prev = null;
+    for (const k of days) {
+      const t = new Date(k + "T12:00:00");
+      run = prev && Math.round((t - prev) / 864e5) === 1 ? run + 1 : 1;
+      s.bestStreak = Math.max(s.bestStreak, run); prev = t;
+    }
+    return s;
+  }
+  const doneSet = st => new Set(CHALLENGES.filter(c => c.val(st) >= c.target).map(c => c.id));
+  const fmtProgress = (c, v) => {
+    const cur = Math.min(v, c.target);
+    if (c.unit === "h") return `${(cur / 60).toFixed(cur % 60 ? 1 : 0)} / ${c.target / 60} h`;
+    if (c.unit === "min") return `${Math.round(cur)} / ${c.target} min`;
+    return `${cur} / ${c.target}${c.unit ? " " + c.unit : ""}`;
+  };
+
+  function epaulette(r) {
+    let g = `<rect x="1" y="1" width="78" height="38" rx="7" fill="#151233" stroke="#e9c27b" stroke-opacity=".5"/>`;
+    g += `<circle cx="70" cy="20" r="3" fill="#e9c27b" fill-opacity=".8"/>`;
+    for (let i = 0; i < r.stripes; i++) g += `<rect x="${8 + i * 13}" y="6" width="8" height="28" rx="1.5" fill="url(#epg)"/>`;
+    for (let i = 0; i < (r.star || 0); i++) g += `<path transform="translate(${60 - i * 0} ${8 + i * 9}) scale(.32)" d="M10 0l3 7h7l-6 4 2 8-6-5-6 5 2-8-6-4h7z" fill="#fbe3a8"/>`;
+    return `<svg width="80" height="40" viewBox="0 0 80 40" aria-hidden="true"><defs><linearGradient id="epg" x1="0" x2="1"><stop offset="0" stop-color="#c08f45"/><stop offset=".5" stop-color="#fbe3a8"/><stop offset="1" stop-color="#c08f45"/></linearGradient></defs>${g}</svg>`;
+  }
+
+  // ----- Cloud history and rankings (claude.ai artifact database) -----
+  // Signed in on claude.ai, each pilot's logbook is saved in their private part of the page's database,
+  // so it follows them wherever they open the link. A summary row in `leaderboard/<id>` feeds the rankings.
+  // Without it (opened elsewhere, signed out, or view-only), history stays in this browser only.
+  const cloud = { db: null, user: null, uid: null, readOnly: false, board: [], ready: false };
+  let cloudQueue = Promise.resolve();
+  function mergeLogs(a, b) {
+    const m = new Map();
+    for (const e of [...a, ...b]) if (e && typeof e.date === "number" && byCode[e.from] && byCode[e.to]) m.set(e.date + "|" + e.flightNo, e);
+    return [...m.values()].sort((x, y) => y.date - x.date).slice(0, LOG_MAX);
+  }
+  function boardRow(st) {
+    return { uid: cloud.uid, totalMin: st.totalMin, weekMin: st.weekMin, weekKey: st.weekKey, flights: st.landed, updated: Date.now() };
+  }
+  function syncCloud() {
+    if (!cloud.uid || cloud.readOnly) return;
+    const log = logbook.slice(0, LOG_MAX), row = boardRow(careerStats(logbook));
+    cloudQueue = cloudQueue.then(async () => {
+      try {
+        await cloud.db.doc(`data/users/${cloud.uid}/profile`).set({ logbook: log, updated: Date.now() });
+        await cloud.db.doc(`leaderboard/${cloud.uid}`).set(row);
+      } catch (e) {
+        if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) cloud.readOnly = true;
+      }
+      renderBoard();
+    });
+  }
+  async function initCloud() {
+    try {
+      if (!window.claude || typeof window.claude.use !== "function") return;
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db) return;
+      cloud.db = db; cloud.user = user;
+      cloud.uid = user ? await user.id() : null;
+      if (cloud.uid) {
+        const snap = await db.doc(`data/users/${cloud.uid}/profile`).get();
+        const remote = snap.exists && Array.isArray(snap.data().logbook) ? snap.data().logbook : [];
+        const merged = mergeLogs(logbook, remote);
+        const before = JSON.stringify(logbook);
+        logbook = merged; store.set("sfd.logbook", logbook);
+        const me = await db.doc(`leaderboard/${cloud.uid}`).get();
+        const row = boardRow(careerStats(logbook)), cur = me.exists ? me.data() : null;
+        const stale = !cur || cur.totalMin !== row.totalMin || cur.weekMin !== row.weekMin || cur.weekKey !== row.weekKey || cur.flights !== row.flights;
+        if (logbook.length && (merged.length !== remote.length || stale)) syncCloud();
+        if (JSON.stringify(logbook) !== before) { renderLog(); renderCareer(); }
+      }
+      cloud.ready = true;
+      db.collection("leaderboard").orderBy("totalMin", "desc").limit(100)
+        .onSnapshot(snap => { cloud.board = snap.docs.map(d => d.data()); renderBoard(); }, () => {});
+      renderBoard();
+    } catch (e) { /* stay local-only */ }
+  }
+
+  let boardMode = store.get("sfd.boardMode", "week") === "all" ? "all" : "week", boardGen = 0;
+  async function renderBoard() {
+    const gen = ++boardGen, mine = careerStats(logbook), wk = weekKey(Date.now());
+    const meId = cloud.uid || "me";
+    let rows = (cloud.ready ? cloud.board : []).filter(d => d && d.uid && d.uid !== meId)
+      .map(d => ({ uid: d.uid, total: d.totalMin || 0, week: d.weekKey === wk ? d.weekMin || 0 : 0, flights: d.flights || 0 }));
+    rows.push({ uid: meId, total: mine.totalMin, week: mine.weekMin, flights: mine.landed, me: true });
+    const key = boardMode === "week" ? "week" : "total";
+    rows = rows.filter(r => r.me || r[key] > 0).sort((a, b) => b[key] - a[key] || b.total - a.total);
+    const myPos = rows.findIndex(r => r.me);
+    let show = rows.slice(0, 10);
+    if (myPos >= 10) show = show.concat([rows[myPos]]);
+    let names = {};
+    if (cloud.user && cloud.uid) { try { names = await cloud.user.profiles(show.filter(r => !r.me).map(r => r.uid)); } catch (e) {} }
+    if (gen !== boardGen) return;
+    const list = $("boardList"); list.textContent = "";
+    show.forEach(r => {
+      const pos = rows.indexOf(r) + 1, li = document.createElement("li");
+      li.className = "b-row" + (r.me ? " me" : "") + (pos <= 3 ? ` top${pos}` : "");
+      const rk = rankFor(r.total).r;
+      li.innerHTML = `<span class="b-pos">${pos}</span><span class="b-who"><b></b><small>${rk.title}</small></span><span class="b-val">${fmtHM(r[key])}</span>`;
+      li.querySelector("b").textContent = r.me ? "You" : ((names[r.uid] && names[r.uid].name) || "Pilot");
+      list.appendChild(li);
+    });
+    document.querySelectorAll("[data-board]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.board === boardMode)));
+    $("boardNote").textContent = !cloud.ready || !cloud.uid
+      ? "Rankings against other pilots appear when you open this page on claude.ai while signed in. Your own history is saved in this browser."
+      : cloud.readOnly
+        ? "You can see the rankings, but this link doesn't let you save to them. Your history is saved in this browser."
+        : "Everyone studying on this page is ranked here. Your history is saved to your Claude account, so it's here whenever you come back.";
+  }
+  document.querySelectorAll("[data-board]").forEach(b => b.addEventListener("click", () => {
+    boardMode = b.dataset.board; store.set("sfd.boardMode", boardMode); renderBoard();
+  }));
+
+  function renderCareer() {
+    const st = careerStats(logbook), rk = rankFor(st.totalMin);
+    $("epaulette").innerHTML = epaulette(rk.r);
+    $("rankTitle").textContent = rk.r.title;
+    $("rankSub").textContent = `${fmtHM(st.totalMin)} of study logged`;
+    $("rankBar").style.width = `${Math.round(rk.pct * 100)}%`;
+    $("rankNext").textContent = rk.next ? `${fmtHM(rk.next.min - st.totalMin)} more to ${rk.next.title}` : "Top rank reached. Keep flying.";
+    $("cStreak").textContent = `${st.streak} day${st.streak === 1 ? "" : "s"}`;
+    $("cBest").textContent = `${st.bestStreak} day${st.bestStreak === 1 ? "" : "s"}`;
+    $("cWeek").textContent = fmtHM(st.weekMin);
+    $("cToday").textContent = fmtHM(st.todayMin);
+    const grid = $("chGrid"); let done = 0;
+    grid.innerHTML = CHALLENGES.map(c => {
+      const v = c.val(st), ok = v >= c.target; if (ok) done++;
+      const pct = Math.min(100, Math.round(v / c.target * 100));
+      return `<div class="ch${ok ? " done" : ""}">
+        <div class="ch-top"><span class="ch-medal" aria-hidden="true">${ok ? "✓" : ""}</span><div><b>${c.title}</b>${c.kind ? `<span class="ch-kind">${c.kind}</span>` : ""}</div></div>
+        <p>${c.desc}</p>
+        <div class="meter"><i style="width:${pct}%"></i></div>
+        <span class="ch-prog">${ok ? "Complete" : fmtProgress(c, v)}</span>
+      </div>`;
+    }).join("");
+    $("chCount").textContent = `${done} of ${CHALLENGES.length} complete`;
+    renderBoard();
+  }
 
   // ---------- View switching ----------
   function showView() {
@@ -1569,6 +1963,7 @@ td.num, th.num { text-align: right; }
     $("cockpit").hidden = !active;
     renderLanded();
     renderLog();
+    renderCareer();
     if (active) {
       $("dFlight").textContent = flight.plan.flightNo + (flight.seat ? ` · Seat ${flight.seat}` : "");
       $("dRoute").textContent = `${byCode[flight.plan.from].city} → ${byCode[flight.plan.to].city}`;
@@ -1584,6 +1979,8 @@ td.num, th.num { text-align: right; }
   window.addEventListener("resize", () => { if (flight) tick(); });
 
   showView();
+  initCloud();
+  setInterval(() => { if (!flight) renderCareer(); }, 60000);   // roll daily/weekly challenges over at midnight
 })();
 </script>
 </body>
