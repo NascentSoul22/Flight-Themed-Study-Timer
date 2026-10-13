@@ -13,7 +13,12 @@ Open `index.html` in any browser. There's no build step and no dependencies. Kee
    - the seatbelt sign: cyan **Fasten seatbelt: study** or amber **Seatbelt off: take a break**
    - a countdown for the current block, plus the time of the next change
    - phase, altitude, ground speed, distance to go, time to go and ETA
-   - a nav display with your aircraft moving along the real great-circle route over a world map with real coastlines and country borders (amber diamonds mark the breaks, and a scale bar shows nautical miles)
+   - a nav display, either a **3D globe** (default) or a **flat** map:
+     - the globe follows your plane and tilts toward the horizon when zoomed in, so the flight path arcs above the ground with its shadow underneath
+     - drag to look around, double-click to follow the plane again, use + and − to zoom
+     - land is colored by climate (rainforest, desert, forest, tundra, ice), oceans get depth and sun glare, and day and night follow the real position of the sun
+     - a shaded 3D airliner model with a gold tail and blinking navigation lights (red left, green right, white strobe). It pitches nose-up in the climb and down on descent, and casts a shadow on the ground
+     - real coastlines and borders, nearby airports, gold diamonds for breaks, and a nautical-mile scale bar
 5. A cabin chime plays when the sign changes and when you land. If you allow notifications, you also get one.
 
 Controls: **Enter holding** pauses (or press Space), **Skip to next** jumps to the next block, **Divert** ends the flight early. Every flight is saved in the **Pilot logbook** with the study time you put in. If you reload the page mid-flight, the flight carries on where it was.
@@ -25,3 +30,5 @@ All data stays in your browser's local storage.
 `geo/world.js` holds country outlines from [Natural Earth](https://www.naturalearthdata.com/) at 1:50m scale (public domain), taken from the `world-atlas@2.0.2` package and repacked into a compact form for the nav display.
 
 The page is set in Times New Roman. Where that font isn't installed, it uses Tinos from Google Fonts, which has the same letter widths.
+
+The look is a twilight first-class cabin: an indigo-to-sunset sky, frosted-glass panels and champagne-gold details.

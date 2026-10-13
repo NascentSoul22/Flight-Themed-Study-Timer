@@ -8,31 +8,39 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
-/* Layout: a night-flight cockpit. Planner (form + boarding pass) before departure,
-   then a flight deck (seatbelt annunciator, countdown, nav display, schedule strip). */
+/* Layout: a twilight first-class cabin. A dusk sky (indigo above, sunset glow at the horizon) under frosted-glass
+   panels with champagne-gold detailing. Planner + flight plan, then the ticket, then the flight deck. */
 :root {
-  --sky: #0a1020;        /* page ground: night sky */
-  --panel: #111a2d;      /* instrument panel */
-  --panel-2: #172338;    /* raised bezel */
-  --line: #26344f;       /* hairlines, graticule */
-  --ink: #e6ecf7;        /* primary text */
-  --muted: #8b98b3;      /* captions */
-  --focus: #4fd6ec;      /* seatbelt ON: study (ND cyan) */
-  --break: #f4b740;      /* seatbelt OFF: break (amber caution) */
-  --route: #e25ad6;      /* FMS magenta route line */
-  --ok: #6ee38a;         /* landed */
-  --ocean: #0b1729;      /* nav display: sea */
-  --land: #1d2c3c;       /* nav display: land */
-  --coast: #4d6a8c;      /* coastlines */
-  --border: #3a5070;     /* country borders */
-  --grid: rgba(139, 152, 179, .14);
-  --warn: #ff6b5e;       /* divert */
+  --sky: #0b0a1d;        /* page ground: night above the clouds */
+  --dusk: #2a1638;       /* plum band low in the sky */
+  --sunset: #ff9a62;     /* horizon glow */
+  --glass: rgba(255, 255, 255, .055);
+  --glass-2: rgba(255, 255, 255, .09);
+  --panel: #15122c;      /* solid fallback behind glass, menus */
+  --panel-2: #1d1938;
+  --line: rgba(255, 255, 255, .11);
+  --ink: #f6f0e6;        /* warm ivory text */
+  --muted: #aaa3c6;      /* lavender grey captions */
+  --gold: #e9c27b;       /* champagne gold accent */
+  --gold-2: #c08f45;
+  --focus: #8fd8ff;      /* seatbelt ON: study (clear-sky blue) */
+  --break: #f6c56d;      /* seatbelt OFF: break (cabin-light gold) */
+  --route: #ff8fc4;      /* remaining route */
+  --ok: #95e6b6;         /* landed */
+  --warn: #ff8b7b;       /* divert */
+  --space: #05040f;      /* nav display: space behind the globe */
+  --space-2: #191440;    /* glow of space near the globe */
+  --city: #ffd796;       /* other airports */
+  --grid-globe: rgba(220, 225, 255, .15);
+  --coast-globe: rgba(245, 240, 255, .55);
+  --border-globe: rgba(255, 255, 255, .26);
+  --paper: #f4f4f8;      /* printed ticket stock */
+  --paper-ink: #1b1636;  /* ticket print */
+  --paper-line: #cfcbe0; /* ticket rules */
   --font-display: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
   --font-body: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
   --font-mono: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
-  --paper: #eef1f6;      /* printed ticket stock */
-  --paper-ink: #14213a;  /* ticket print */
-  --paper-line: #c3cbd8; /* ticket rules */
+  --radius: 18px;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -42,190 +50,249 @@ body {
   background: var(--sky);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
   padding-inline: 16px;
-  padding-block: 20px 48px;
+  padding-block: 28px 56px;
+  min-height: 100%;
 }
-.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: .02em; text-wrap: balance; margin: 0; }
-.label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+body::after {   /* the dusk sky, pinned to the screen */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -2;
+  background:
+    radial-gradient(1400px 520px at 50% 108%, color-mix(in srgb, var(--sunset) 30%, transparent), transparent 70%),
+    radial-gradient(900px 600px at 88% -12%, rgba(120, 96, 255, .22), transparent 62%),
+    radial-gradient(700px 500px at -8% 30%, rgba(255, 120, 190, .10), transparent 60%),
+    linear-gradient(180deg, #06071a 0%, #100d2b 42%, var(--dusk) 82%, #3a1c30 100%);
+}
+body::before {   /* faint star field */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .55;
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 140px 80px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 260px 40px, #ffe9c4 50%, transparent 51%),
+    radial-gradient(1px 1px at 90px 160px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 210px 210px, #dfe6ff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 300px 140px, #fff 50%, transparent 51%);
+  background-size: 320px 260px;
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 85%);
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+.label { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in srgb, var(--gold) 70%, var(--muted)); }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 button, input, select { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+::selection { background: color-mix(in srgb, var(--gold) 45%, transparent); }
 
 /* Header */
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.brand { display: flex; align-items: baseline; gap: 12px; }
-.brand h1 { font-size: 30px; text-transform: uppercase; }
-.brand .tag { color: var(--muted); font-size: 13px; }
-.hours { color: var(--muted); font-size: 13px; }
-.hours b { color: var(--ink); font-family: var(--font-mono); font-weight: 700; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand svg { flex: none; filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--gold) 45%, transparent)); }
+.brand h1 { font-size: clamp(30px, 5vw, 44px); font-style: italic; letter-spacing: .01em; line-height: 1; }
+.brand .tag { display: block; margin-top: 6px; color: var(--gold); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; }
+.hours {
+  display: grid; gap: 2px; text-align: right; padding: 10px 16px; border-radius: 14px;
+  background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px);
+  color: var(--muted); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+}
+.hours b { color: var(--ink); font-family: var(--font-mono); font-weight: 400; font-size: 26px; letter-spacing: 0; text-transform: none; font-style: italic; }
 
-/* Panels */
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+/* Glass panels */
+.panel {
+  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; min-width: 0;
+  box-shadow: 0 24px 60px rgba(4, 2, 18, .45), inset 0 1px 0 rgba(255, 255, 255, .09);
+  backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+.panel h2 { font-size: 28px; font-style: italic; }
 
 /* Planner */
-.planner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
-.form { display: grid; gap: 14px; }
+.planner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
+.form { display: grid; gap: 16px; }
 .row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field select, .field input {
-  width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
-  padding: 10px; font-family: var(--font-mono); font-size: 14px;
+  width: 100%; background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 10px;
+  padding: 11px 12px; font-family: var(--font-mono); font-size: 16px; transition: border-color .2s, box-shadow .2s;
 }
-.field .hint { font-size: 12px; color: var(--muted); }
-.swap { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; cursor: pointer; }
-.swap:hover { border-color: var(--muted); }
-.dur { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field select option { background: var(--panel); color: var(--ink); }
+.field select:hover, .field input:hover { border-color: rgba(255, 255, 255, .22); }
+.field select:focus, .field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent); }
+.field .hint { font-size: 13px; color: var(--muted); font-style: italic; }
+.swap { background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 50%; width: 42px; height: 42px; cursor: pointer; color: var(--gold); font-size: 18px; }
+.swap:hover { border-color: var(--gold); transform: rotate(180deg); }
+@media (prefers-reduced-motion: no-preference) { .swap { transition: transform .4s, border-color .2s; } }
+.dur { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dur .field input { text-align: right; }
-.reset { background: none; border: 0; color: var(--focus); padding: 0; cursor: pointer; font-size: 12px; text-decoration: underline; justify-self: start; }
+.reset { background: none; border: 0; color: var(--gold); padding: 0; cursor: pointer; font-size: 13px; text-decoration: underline; justify-self: start; }
+.form > .hint-line { font-size: 13px; color: var(--muted); font-style: italic; }
 
 .btn {
-  border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px;
-  padding: 11px 16px; cursor: pointer; font-family: var(--font-display); font-weight: 700;
-  font-size: 17px; letter-spacing: .06em; text-transform: uppercase;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .06); border-radius: 999px;
+  padding: 11px 22px; cursor: pointer; font-family: var(--font-display); font-weight: 700;
+  font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
+  transition: transform .15s, box-shadow .2s, border-color .2s, background .2s;
 }
-.btn:hover { border-color: var(--muted); }
-.btn.primary { background: var(--focus); color: var(--sky); border-color: var(--focus); }
-.btn.primary:hover { filter: brightness(1.08); }
+.btn:hover { border-color: rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .1); }
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: linear-gradient(180deg, #f8dd9e 0%, var(--gold) 45%, var(--gold-2) 100%); color: #21162e; border-color: #f6d896;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--gold) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+.btn.primary:hover { box-shadow: 0 14px 34px color-mix(in srgb, var(--gold) 50%, transparent), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .btn.danger { color: var(--warn); }
-.btn.danger.armed { background: var(--warn); color: var(--sky); border-color: var(--warn); }
+.btn.danger.armed { background: var(--warn); color: #2a0f12; border-color: var(--warn); }
 
-/* Boarding pass */
-.pass { display: grid; gap: 16px; }
+/* Flight plan summary */
+.pass { display: grid; gap: 18px; }
 .pass-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
 .pass-route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
-.pass-route .code { font-family: var(--font-display); font-size: 56px; line-height: 1; font-weight: 700; }
-.pass-route .city { color: var(--muted); font-size: 13px; }
+.pass-route .code { font-family: var(--font-display); font-size: 64px; line-height: 1; letter-spacing: .02em; }
+.pass-route .city { color: var(--muted); font-size: 15px; font-style: italic; }
 .pass-route .to { text-align: right; }
-.pass-route .mid { color: var(--route); text-align: center; font-family: var(--font-mono); font-size: 12px; }
+.pass-route .mid { color: var(--gold); text-align: center; font-family: var(--font-mono); font-size: 14px; font-style: italic; }
 .pass-route .mid svg { display: block; margin: 0 auto 4px; }
-.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
-.facts .v { font-family: var(--font-mono); font-size: 16px; font-weight: 700; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.facts .v { font-family: var(--font-mono); font-size: 20px; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
 
 /* Schedule strip */
-.strip-wrap { display: grid; gap: 6px; }
-.strip { position: relative; display: flex; height: 26px; border-radius: 4px; overflow: hidden; background: var(--panel-2); }
-.strip .seg { height: 100%; border-right: 2px solid var(--panel); min-width: 2px; position: relative; }
+.strip-wrap { display: grid; gap: 8px; }
+.strip { position: relative; display: flex; height: 28px; border-radius: 999px; overflow: hidden; background: rgba(8, 6, 24, .5); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5); }
+.strip .seg { height: 100%; border-right: 2px solid rgba(8, 6, 24, .7); min-width: 2px; position: relative; }
 .strip .seg:last-child { border-right: 0; }
-.strip .seg.focus { background: color-mix(in srgb, var(--focus) 70%, var(--panel)); }
-.strip .seg.break { background: var(--break); }
-.strip .seg.done { opacity: .35; }
-.strip .seg span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--sky); font-weight: 700; overflow: hidden; white-space: nowrap; }
-.strip .cursor { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--sky); transform: translateX(-1px); }
-.strip-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.strip .seg.focus { background: linear-gradient(180deg, color-mix(in srgb, var(--focus) 85%, #fff), color-mix(in srgb, var(--focus) 70%, #2a3f80)); }
+.strip .seg.break { background: linear-gradient(180deg, #fbe0a3, var(--break) 60%, var(--gold-2)); }
+.strip .seg.done { opacity: .3; }
+.strip .seg span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; color: #15122c; font-weight: 700; overflow: hidden; white-space: nowrap; }
+.strip .cursor { position: absolute; top: 2px; bottom: 2px; width: 3px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 10px var(--ink); transform: translateX(-1px); }
+.strip-scale { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-style: italic; }
 
 /* Flight deck */
 .annunciator {
+  --tone: var(--focus);
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  border-radius: 10px; padding: 14px 18px; border: 1px solid var(--focus);
-  background: color-mix(in srgb, var(--focus) 12%, var(--panel));
+  border-radius: var(--radius); padding: 16px 22px; border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--tone) 20%, transparent), color-mix(in srgb, var(--tone) 6%, transparent) 60%);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--tone) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, .1);
+  backdrop-filter: blur(16px);
 }
-.annunciator.break { border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, var(--panel)); }
-.annunciator.hold { border-color: var(--muted); background: var(--panel); }
-.sign { display: flex; align-items: center; gap: 14px; }
-.sign svg { flex: none; }
-.sign .what { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; }
-.sign .sub { color: var(--muted); font-size: 13px; }
-.annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 13px; text-align: right; }
+.annunciator.break { --tone: var(--break); }
+.annunciator.hold { --tone: var(--muted); box-shadow: none; }
+.sign { display: flex; align-items: center; gap: 16px; }
+.sign svg { flex: none; filter: drop-shadow(0 0 8px currentColor); }
+.sign .what { font-family: var(--font-display); font-size: 28px; font-style: italic; line-height: 1.1; }
+.sign .sub { color: var(--muted); font-size: 15px; }
+.annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 14px; text-align: right; letter-spacing: .06em; }
 
-.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; }
-.timer { display: grid; gap: 16px; align-content: start; }
-.big { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 700; font-size: clamp(72px, 15vw, 128px); line-height: .9; letter-spacing: .01em; color: var(--focus); }
+.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; }
+.timer { display: grid; gap: 18px; align-content: start; }
+.big {
+  font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 400; font-style: italic;
+  font-size: clamp(80px, 16vw, 140px); line-height: .9; letter-spacing: -.01em; color: var(--focus);
+  text-shadow: 0 0 40px color-mix(in srgb, currentColor 45%, transparent);
+}
 .break-mode .big { color: var(--break); }
 .hold-mode .big { color: var(--muted); }
-.next { color: var(--muted); font-size: 14px; }
+.next { color: var(--muted); font-size: 16px; }
 .next b { color: var(--ink); font-weight: 700; }
-.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.inst { background: var(--panel-2); padding: 10px 12px; display: grid; gap: 2px; }
-.inst .v { font-family: var(--font-mono); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
-.inst .v small { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
-.nd { position: relative; padding: 0; overflow: hidden; }
-.nd canvas { display: block; width: 100%; height: 100%; min-height: 340px; }
-.nd .nd-tag { position: absolute; left: 12px; top: 10px; z-index: 1; }
+.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.inst { background: rgba(8, 6, 24, .4); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
+.inst .label { font-size: 10px; }
+.inst .v { font-family: var(--font-mono); font-size: 21px; font-variant-numeric: tabular-nums; }
+.inst .v small { font-size: 12px; color: var(--muted); margin-left: 3px; font-style: italic; }
+.panel.nd { position: relative; padding: 0; overflow: hidden; background: var(--space); }
+.nd canvas { display: block; width: 100%; height: 100%; min-height: 400px; touch-action: none; }
+.nd-tools { position: absolute; right: 12px; top: 10px; z-index: 1; display: flex; gap: 6px; }
+.nd-tools button {
+  background: rgba(10, 8, 30, .6); border: 1px solid rgba(255, 255, 255, .18); color: var(--ink);
+  border-radius: 999px; padding: 5px 13px; cursor: pointer; font-size: 13px; letter-spacing: .08em; backdrop-filter: blur(8px);
+}
+.nd-tools button[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border-color: #f6d896; }
+.nd-tools button:hover { border-color: var(--gold); }
+.nd-hint { position: absolute; right: 14px; bottom: 10px; z-index: 1; font-size: 13px; font-style: italic; color: rgba(246, 240, 230, .72); text-shadow: 0 1px 3px #000; pointer-events: none; }
+.nd .nd-tag { position: absolute; left: 14px; top: 13px; z-index: 1; text-shadow: 0 1px 3px #000; }
 .controls { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* Landed */
-.landed { display: grid; gap: 14px; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, var(--panel)); }
-.landed.diverted { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 8%, var(--panel)); }
-.landed h2 { font-size: 30px; }
-.landed p { margin: 0; max-width: 62ch; color: var(--muted); }
+.landed { display: grid; gap: 14px; border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--ok) 14%, transparent), var(--glass)); }
+.landed.diverted { border-color: color-mix(in srgb, var(--warn) 50%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--warn) 14%, transparent), var(--glass)); }
+.landed h2 { font-size: 40px; }
+.landed p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 18px; }
 .landed p b { color: var(--ink); }
 
 /* Ticket */
-.ticket-view { display: grid; gap: 14px; justify-items: center; }
-.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; }
+.ticket-view { display: grid; gap: 16px; justify-items: center; }
+.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; font-style: italic; font-size: 18px; }
 .ticket {
-  width: 100%; max-width: 860px; display: grid; grid-template-columns: minmax(0, 1fr) 230px;
-  background: var(--paper); color: var(--paper-ink); border-radius: 12px; overflow: hidden;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+  width: 100%; max-width: 880px; display: grid; grid-template-columns: minmax(0, 1fr) 240px;
+  background: var(--paper); color: var(--paper-ink); border-radius: 16px; overflow: hidden;
+  box-shadow: 0 30px 70px rgba(4, 2, 18, .6), 0 0 0 1px rgba(255, 255, 255, .4);
 }
 @media (prefers-reduced-motion: no-preference) {
   .ticket.printing { animation: print 900ms cubic-bezier(.2, .8, .2, 1); }
   @keyframes print { from { transform: translateY(-18px); clip-path: inset(0 0 70% 0); } to { transform: none; clip-path: inset(0 0 0 0); } }
 }
-.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
-  background: var(--paper-ink); color: var(--paper); padding: 10px 22px; }
-.t-band b { font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
-.t-band span { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
-.t-main { padding: 18px 22px 20px; display: grid; gap: 16px; min-width: 0; }
-.t-stub { padding: 18px 20px 20px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); position: relative; min-width: 0; }
-.t-stub::before, .t-stub::after { content: ""; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky); }
-.t-stub::before { top: -10px; } .t-stub::after { bottom: -10px; }
-.t-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 60%, var(--paper)); }
-.t-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: linear-gradient(100deg, #17123a, #3a1d4a 60%, #6b2f4a); color: var(--paper); padding: 12px 24px; }
+.t-band b { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: 400; font-style: italic; color: var(--gold); }
+.t-band span { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.t-main { padding: 20px 24px 22px; display: grid; gap: 16px; min-width: 0; }
+.t-stub { padding: 20px 22px 22px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); min-width: 0;
+  background: linear-gradient(180deg, rgba(233, 194, 123, .14), transparent 70%); }
+.t-k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 55%, var(--paper)); }
+.t-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .t-route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; }
-.t-route .code { font-size: 64px; line-height: .9; font-weight: 700; }
+.t-route .code { font-size: 72px; line-height: .9; }
 .t-route .to { text-align: right; }
-.t-route .plane { font-size: 26px; color: var(--route); padding-bottom: 8px; }
+.t-route .plane { font-size: 28px; color: var(--gold-2); padding-bottom: 10px; }
 .t-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; border-top: 1px solid var(--paper-line); padding-top: 14px; }
-.t-note { font-style: italic; font-size: 14px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
-.t-barcode { width: 100%; height: 56px; display: block; }
-.t-num { font-size: 12px; letter-spacing: .12em; text-align: center; }
-.ticket-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
-.autoboard { color: var(--muted); font-size: 14px; }
-.autoboard b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.t-note { font-style: italic; font-size: 16px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
+.t-barcode { width: 100%; height: 58px; display: block; }
+.t-num { font-size: 12px; letter-spacing: .14em; text-align: center; }
+.ticket-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.autoboard { color: var(--muted); font-size: 15px; font-style: italic; }
+.autoboard b { color: var(--gold); font-variant-numeric: tabular-nums; font-style: normal; }
 @media (max-width: 700px) {
   .ticket { grid-template-columns: 1fr; }
   .t-stub { border-left: 0; border-top: 2px dashed var(--paper-line); }
-  .t-stub::before, .t-stub::after { top: -11px; bottom: auto; }
-  .t-stub::before { left: -10px; } .t-stub::after { left: auto; right: -10px; }
   .t-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .t-route .code { font-size: 48px; }
+  .t-route .code { font-size: 52px; }
 }
 
 /* Logbook */
-.logbook { display: grid; gap: 12px; }
+.logbook { display: grid; gap: 14px; }
 .logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.logbook h2 { font-size: 22px; text-transform: uppercase; }
 .table-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: color-mix(in srgb, var(--gold) 70%, var(--muted)); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+tbody tr:hover td { background: rgba(255, 255, 255, .03); }
 td.num, th.num { text-align: right; }
-.pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; font-family: var(--font-body); }
+.pill { font-size: 12px; padding: 2px 10px; border-radius: 99px; border: 1px solid currentColor; font-family: var(--font-body); font-style: italic; }
 .pill.ok { color: var(--ok); }
 .pill.div { color: var(--warn); }
-.empty { color: var(--muted); font-size: 14px; margin: 0; }
-.clear { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; text-decoration: underline; }
+.empty { color: var(--muted); font-size: 16px; margin: 0; font-style: italic; }
+.clear { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; }
 .clear.armed { color: var(--warn); }
 
 @media (max-width: 780px) {
   .planner, .deck { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pass-route .code { font-size: 44px; }
-  .nd canvas { min-height: 260px; }
+  .pass-route .code { font-size: 48px; }
+  .nd canvas { min-height: 300px; }
+  .hours { text-align: left; }
 }
 @media (max-width: 420px) {
   .instruments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sign .what { font-size: 22px; }
+  .sign .what { font-size: 23px; }
+  .panel { padding: 18px; }
+  .nd-hint { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .annunciator { transition: background .4s, border-color .4s; }
+  .annunciator { transition: background .5s, border-color .5s, box-shadow .5s; }
 }
 </style>
 </head>
@@ -234,8 +301,11 @@ td.num, th.num { text-align: right; }
 
   <header class="top">
     <div class="brand">
-      <h1>Study Flight Deck</h1>
-      <span class="tag">Your flight time is your study time.</span>
+      <svg width="58" height="30" viewBox="0 0 58 30" aria-hidden="true"><defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3a8"/><stop offset="1" stop-color="#c08f45"/></linearGradient></defs><path fill="url(#gw)" d="M29 7c3 0 5 2.2 5 5s-2 6-5 9c-3-3-5-6.2-5-9s2-5 5-5zM24 12C17 8 8 6 0 6c3 3 8 5 14 6-4 0-8 .5-11 1.5 5 2 11 2 16 1-3 1-6 2.5-8 4 6 0 11-2 14-4.5zM34 12c7-4 16-6 24-6-3 3-8 5-14 6 4 0 8 .5 11 1.5-5 2-11 2-16 1 3 1 6 2.5 8 4-6 0-11-2-14-4.5z"/></svg>
+      <div>
+        <h1>Study Flight Deck</h1>
+        <span class="tag">Your flight time is your study time</span>
+      </div>
     </div>
     <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
   </header>
@@ -243,7 +313,7 @@ td.num, th.num { text-align: right; }
   <!-- PLANNER -->
   <section id="planner" class="planner">
     <form class="panel form" id="planForm" autocomplete="off">
-      <h2 style="font-size:22px;text-transform:uppercase">File a flight plan</h2>
+      <h2>File a flight plan</h2>
       <div class="row">
         <div class="field">
           <label class="label" for="from">From</label>
@@ -280,7 +350,7 @@ td.num, th.num { text-align: right; }
           <input id="breakMin" type="number" min="1" max="60" step="1" value="10">
         </div>
       </div>
-      <span class="hint" style="font-size:12px;color:var(--muted)">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
+      <span class="hint-line">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
 
       <button type="submit" class="btn primary" id="depart">Print my ticket</button>
     </form>
@@ -293,7 +363,7 @@ td.num, th.num { text-align: right; }
       <div class="pass-route">
         <div><div class="code" id="pFromCode">—</div><div class="city" id="pFromCity"></div></div>
         <div class="mid">
-          <svg width="64" height="20" viewBox="0 0 64 20" aria-hidden="true"><path d="M2 16 Q32 -6 62 16" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/></svg>
+          <svg width="64" height="20" viewBox="0 0 64 20" aria-hidden="true"><path d="M2 16 Q32 -6 62 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 4"/></svg>
           <span id="pDist">—</span>
         </div>
         <div class="to"><div class="code" id="pToCode">—</div><div class="city" id="pToCity"></div></div>
@@ -310,8 +380,8 @@ td.num, th.num { text-align: right; }
         <div class="strip-scale mono"><span>0:00</span><span id="pStripEnd"></span></div>
       </div>
       <div class="legend">
-        <span><i style="background:var(--focus)"></i>Seatbelt on: study</span>
-        <span><i style="background:var(--break)"></i>Seatbelt off: break</span>
+        <span><i style="background:var(--focus);box-shadow:0 0 8px var(--focus)"></i>Seatbelt on: study</span>
+        <span><i style="background:var(--break);box-shadow:0 0 8px var(--break)"></i>Seatbelt off: break</span>
       </div>
     </article>
   </section>
@@ -356,6 +426,13 @@ td.num, th.num { text-align: right; }
         </div>
         <div class="panel nd">
           <span class="label nd-tag">Nav display</span>
+          <div class="nd-tools" role="group" aria-label="Map view">
+            <button type="button" data-map-mode="globe" aria-pressed="true">3D globe</button>
+            <button type="button" data-map-mode="flat" aria-pressed="false">Flat</button>
+            <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+            <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+          </div>
+          <span class="nd-hint" id="ndHint"></span>
           <canvas id="map" aria-label="Map of the route with the aircraft position"></canvas>
         </div>
       </div>
@@ -372,7 +449,7 @@ td.num, th.num { text-align: right; }
   <section id="ticketView" class="ticket-view" hidden>
     <p class="lead">Your ticket is ready. Check the details, then board.</p>
     <article class="ticket" id="ticket" aria-label="Flight ticket">
-      <div class="t-band"><b>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
+      <div class="t-band"><b><svg width="40" height="21" viewBox="0 0 58 30" aria-hidden="true"><defs><linearGradient id="gw2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3a8"/><stop offset="1" stop-color="#c08f45"/></linearGradient></defs><path fill="url(#gw2)" d="M29 7c3 0 5 2.2 5 5s-2 6-5 9c-3-3-5-6.2-5-9s2-5 5-5zM24 12C17 8 8 6 0 6c3 3 8 5 14 6-4 0-8 .5-11 1.5 5 2 11 2 16 1-3 1-6 2.5-8 4 6 0 11-2 14-4.5zM34 12c7-4 16-6 24-6-3 3-8 5-14 6 4 0 8 .5 11 1.5-5 2-11 2-16 1 3 1 6 2.5 8 4-6 0-11-2-14-4.5z"/></svg>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
       <div class="t-main">
         <div class="t-route">
           <div><div class="t-k">From</div><div class="code" id="tFromCode">HND</div><div id="tFromCity"></div></div>
@@ -711,6 +788,7 @@ td.num, th.num { text-align: right; }
     flight = { plan: ticket.plan, seat: ticket.seat, startedAt: Date.now(), pausedAt: null, pausedMs: 0 };
     store.set("sfd.active", flight);
     ticket = null;
+    mapZoom = 1; userView = null;
     draft.flightNo = flightNo(); store.set("sfd.draft", draft);
     lastSegIdx = -1;
     chime("focus");
@@ -846,12 +924,22 @@ td.num, th.num { text-align: right; }
   }
 
   // ---------- Nav display (canvas) ----------
-  // Real coastlines and borders from geo/world.js (Natural Earth 1:50m), drawn on a
-  // cos(lat)-scaled equirectangular projection fitted to the route.
+  // Two views share one renderer: a 3D globe (orthographic, follows the aircraft, drag to look around)
+  // and a flat map (cos(lat)-scaled equirectangular). The surface is shaded per pixel: land colored by
+  // climate zone, oceans with depth and sun glint, and real day/night from the sun's current position.
+  // Coastlines and borders (geo/world.js, Natural Earth 1:50m) are stroked on top at full resolution.
   const canvas = $("map"), ctx = canvas.getContext("2d");
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const V3 = (lat, lon) => { const c = Math.cos(rad(lat)); return [c * Math.cos(rad(lon)), c * Math.sin(rad(lon)), Math.sin(rad(lat))]; };
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+  const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
-  let world = null;   // decoded once: { arcs: Float64Array[] (lon,lat pairs), kind: string, polys: [{ rings, box }] }
+  let mapMode = store.get("sfd.mapMode", "globe") === "flat" ? "flat" : "globe";
+  let mapZoom = 1, userView = null, userViewUntil = 0, lastMap = null;
+  const LOOK_MS = 12000;   // how long the globe stays where you dragged it before following the plane again
+
+  let world = null;
   function loadWorld() {
     if (world || !window.WORLD) return world;
     const W = window.WORLD, [sx, sy] = W.s, [tx, ty] = W.t;
@@ -860,6 +948,14 @@ td.num, th.num { text-align: right; }
       for (let i = 0; i < q.length; i += 2) { x += q[i]; y += q[i + 1]; out[i] = x * sx + tx; out[i + 1] = y * sy + ty; }
       return out;
     });
+    const toXyz = ll => {
+      const out = new Float32Array(ll.length / 2 * 3);
+      for (let i = 0, j = 0; i < ll.length; i += 2, j += 3) {
+        const la = rad(ll[i + 1]), lo = rad(ll[i]), c = Math.cos(la);
+        out[j] = c * Math.cos(lo); out[j + 1] = c * Math.sin(lo); out[j + 2] = Math.sin(la);
+      }
+      return out;
+    };
     const polys = W.p.map(rings => {
       const box = [180, 90, -180, -90];
       const pts = rings.map(ring => {
@@ -877,174 +973,555 @@ td.num, th.num { text-align: right; }
         });
         return r;
       });
-      return { rings: pts, box };
+      return { rings: pts, xyz: pts.map(toXyz), box };
     });
     const boxes = arcs.map(a => {
       const b = [180, 90, -180, -90];
       for (let i = 0; i < a.length; i += 2) { b[0] = Math.min(b[0], a[i]); b[1] = Math.min(b[1], a[i + 1]); b[2] = Math.max(b[2], a[i]); b[3] = Math.max(b[3], a[i + 1]); }
       return b;
     });
-    world = { arcs, boxes, kind: W.k, polys };
+    world = { arcs, arcXyz: arcs.map(toXyz), boxes, kind: W.k, polys };
     return world;
   }
 
-  function mapView(plan, W, H) {
-    const a = byCode[plan.from], b = byCode[plan.to], N = 160, pts = [];
-    let prevLon = null, shift = 0;
-    for (let i = 0; i <= N; i++) {
-      const p = gcPoint(a, b, i / N);
-      if (prevLon != null) { const d = p.lon + shift - prevLon; if (d > 180) shift -= 360; else if (d < -180) shift += 360; }
-      const lon = p.lon + shift; prevLon = lon; pts.push({ lat: p.lat, lon });
+  // ----- Sun and surface colors -----
+  function sunVec(t) {
+    const d = new Date(t), doy = (t - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5;
+    const decl = -23.44 * Math.cos(2 * Math.PI / 365 * (doy + 10));
+    const hours = d.getUTCHours() + d.getUTCMinutes() / 60;
+    return V3(decl, -15 * (hours - 12));
+  }
+  // vegetation by |latitude|: rainforest, tropics, mid-latitudes, temperate, boreal, tundra, ice
+  const VEG = [[0, [28, 96, 52]], [15, [46, 114, 58]], [28, [92, 128, 66]], [42, [76, 116, 62]], [54, [40, 84, 66]],
+               [63, [108, 114, 96]], [70, [208, 218, 228]], [90, [238, 243, 247]]];
+  const SAND = [204, 170, 108], ICE = [232, 240, 246];
+  const OCEAN_DEEP = [7, 32, 66], OCEAN_SHALLOW = [22, 86, 138], SPACE_NIGHT = [4, 8, 20];
+  // [latMin, latMax, lonMin, lonMax] of the big deserts
+  const DESERTS = [[15, 33, -17, 35], [14, 32, 35, 60], [24, 37, 45, 72], [36, 47, 75, 112], [-31, -19, 117, 142],
+                   [26, 37, -118, -104], [-28, -19, 13, 25], [-27, -17, -71, -68]];
+  const tmpRGB = [0, 0, 0];
+  function landRGB(lat, lon) {
+    const al = Math.abs(lat); let i = 0;
+    while (i < VEG.length - 2 && al > VEG[i + 1][0]) i++;
+    const [l0, c0] = VEG[i], [l1, c1] = VEG[i + 1], t = clamp01((al - l0) / (l1 - l0));
+    let r = c0[0] + (c1[0] - c0[0]) * t, g = c0[1] + (c1[1] - c0[1]) * t, b = c0[2] + (c1[2] - c0[2]) * t;
+    let dw = 0;
+    for (const [a, bb, c, d] of DESERTS) { const w = Math.min(lat - a, bb - lat, lon - c, d - lon) / 5; if (w > dw) dw = w; }
+    dw = clamp01(dw);
+    if (dw) { r += (SAND[0] - r) * dw; g += (SAND[1] - g) * dw; b += (SAND[2] - b) * dw; }
+    const gw = clamp01(Math.min(lat - 62, 84 - lat, lon + 58, -22 - lon) / 5);   // Greenland ice sheet
+    if (gw) { r += (ICE[0] - r) * gw; g += (ICE[1] - g) * gw; b += (ICE[2] - b) * gw; }
+    const n = 0.93 + 0.07 * Math.sin(lat * 0.9 + lon * 0.5) * Math.sin(lon * 1.7 - lat * 1.1);
+    tmpRGB[0] = r * n; tmpRGB[1] = g * n; tmpRGB[2] = b * n;
+    return tmpRGB;
+  }
+
+  // Shade every pixel. inv(px, py, P) fills P = [x, y, z (world unit vector), depth (globe z, or -1 on the flat map),
+  // xn, yn (globe view coords), lat, lon] and returns false for space.
+  function paintSurface(sg, Wi, Hi, inv, S, Sv) {
+    const mask = sg.getImageData(0, 0, Wi, Hi).data, img = sg.createImageData(Wi, Hi), d = img.data, P = new Float64Array(8);
+    let hx = 0, hy = 0, hz = 1;
+    if (Sv) { hx = Sv[0]; hy = Sv[1]; hz = Sv[2] + 1; const l = Math.hypot(hx, hy, hz) || 1; hx /= l; hy /= l; hz /= l; }
+    for (let y = 0; y < Hi; y++) {
+      for (let x = 0; x < Wi; x++) {
+        const i = (y * Wi + x) * 4;
+        if (!inv(x + 0.5, y + 0.5, P)) continue;
+        const depth = P[3], landA = mask[i + 3] / 255;
+        const sd = P[0] * S[0] + P[1] * S[1] + P[2] * S[2];
+        const ow = depth >= 0 ? Math.sqrt(depth) : 0.55 - Math.abs(P[6]) / 300;
+        let r = OCEAN_DEEP[0] + (OCEAN_SHALLOW[0] - OCEAN_DEEP[0]) * ow;
+        let g = OCEAN_DEEP[1] + (OCEAN_SHALLOW[1] - OCEAN_DEEP[1]) * ow;
+        let b = OCEAN_DEEP[2] + (OCEAN_SHALLOW[2] - OCEAN_DEEP[2]) * ow;
+        if (landA > 0) { const c = landRGB(P[6], P[7]); r += (c[0] - r) * landA; g += (c[1] - g) * landA; b += (c[2] - b) * landA; }
+        const day = smooth(-0.1, 0.1, sd), lit = 0.55 + 0.45 * clamp01(sd);
+        const limb = depth >= 0 ? 0.62 + 0.38 * Math.sqrt(depth) : 1;
+        const k = (0.2 + 0.8 * day * lit) * limb;
+        const tw = Math.exp(-(sd * sd) / 0.003) * 0.3;   // warm band along the terminator
+        let spec = 0;
+        if (Sv && depth >= 0 && landA < 1) {
+          const nh = P[4] * hx + P[5] * hy + depth * hz;
+          if (nh > 0.9) spec = Math.pow(nh, 400) * 0.45 * day * (1 - landA);
+        }
+        d[i] = r * k + SPACE_NIGHT[0] * (1 - day) + 120 * tw + 255 * spec;
+        d[i + 1] = g * k + SPACE_NIGHT[1] * (1 - day) + 60 * tw + 238 * spec;
+        d[i + 2] = b * k + SPACE_NIGHT[2] * (1 - day) + 20 * tw + 205 * spec;
+        d[i + 3] = 255;
+      }
     }
-    const lats = pts.map(p => p.lat), lons = pts.map(p => p.lon);
+    sg.putImageData(img, 0, 0);
+  }
+  const scaled = (inv, q) => q === 1 ? inv : (px, py, P) => inv(px / q, py / q, P);
+
+  // ----- Views -----
+  function routePoints(a, b, N) { const pts = []; for (let i = 0; i <= N; i++) pts.push(gcPoint(a, b, i / N)); return pts; }
+
+  function globeView(plan, f, W, H) {
+    const a = byCode[plan.from], b = byCode[plan.to], d = angDist(a, b), m = Math.min(W, H), N = 160;
+    const R = Math.max(0.4 * m, 0.33 * m / Math.sin(Math.min(d, 3) / 2)) * mapZoom;
+    const c = userView && Date.now() < userViewUntil ? userView : gcPoint(a, b, 0.5 + (f - 0.5) * 0.6);
+    // Zoomed in, the camera tilts to look north across the surface, so the raised flight path reads in 3D.
+    const tilt = Math.max(0, Math.min(38, (R / (0.4 * m) - 1) * 12));
+    const step = Math.max(0.01, deg(1.5 / R));   // snap the view so the cached globe only redraws when it moves ~1.5px
+    const tLat = Math.round(c.lat / step) * step, tLon = Math.round(c.lon / step) * step;
+    const lat0 = Math.max(-89, Math.min(89, tLat - tilt)), lon0 = tLon;
+    const C = V3(lat0, lon0), E = [-Math.sin(rad(lon0)), Math.cos(rad(lon0)), 0];
+    const NB = [-Math.sin(rad(lat0)) * Math.cos(rad(lon0)), -Math.sin(rad(lat0)) * Math.sin(rad(lon0)), Math.cos(rad(lat0))];
+    const T = V3(tLat, tLon), cx = W / 2 - R * dot(T, E), cy = H / 2 + 10 + R * dot(T, NB);
+    const pts = routePoints(a, b, N).map(p => V3(p.lat, p.lon));
+    const lift = Math.min(0.1, Math.max(0.01, d * 0.18));
+    const proj = (v, h = 0) => {
+      const x = dot(v, E), y = dot(v, NB), z = dot(v, C), s = 1 + h;
+      return [cx + R * x * s, cy - R * y * s, z > 0 || (x * x + y * y) * s * s > 1];
+    };
+    const ground = (v, out) => {
+      let x = v[0] * E[0] + v[1] * E[1] + v[2] * E[2], y = v[0] * NB[0] + v[1] * NB[1] + v[2] * NB[2];
+      const z = v[0] * C[0] + v[1] * C[1] + v[2] * C[2];
+      if (z < 0) { const l = Math.hypot(x, y) || 1; x /= l; y /= l; }   // fold the far side onto the horizon
+      out[0] = cx + R * x; out[1] = cy - R * y; out[2] = z;
+      return out;
+    };
+    return { kind: "globe", a, b, d, R, C, E, NB, cx, cy, lat0, lon0, tLat, tLon, pts, N, lift, proj, ground };
+  }
+
+  function flatView(plan, W, H) {
+    const a = byCode[plan.from], b = byCode[plan.to], N = 160, ll = [];
+    let prevLon = null, shift = 0;
+    for (const p of routePoints(a, b, N)) {
+      if (prevLon != null) { const d = p.lon + shift - prevLon; if (d > 180) shift -= 360; else if (d < -180) shift += 360; }
+      const lon = p.lon + shift; prevLon = lon; ll.push({ lat: p.lat, lon });
+    }
+    const lats = ll.map(p => p.lat), lons = ll.map(p => p.lon);
     let minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
-    const span = Math.max(maxLat - minLat, maxLon - minLon, 6), padD = span * 0.25;
-    minLat = Math.max(-85, minLat - padD); maxLat = Math.min(85, maxLat + padD); minLon -= padD; maxLon += padD;
+    const span = Math.max(maxLat - minLat, maxLon - minLon, 6) / mapZoom, padD = span * 0.25;
+    const cLat = (minLat + maxLat) / 2, cLon = (minLon + maxLon) / 2, hw = (maxLon - minLon) / 2 / mapZoom, hh = (maxLat - minLat) / 2 / mapZoom;
+    minLat = Math.max(-85, cLat - hh - padD); maxLat = Math.min(85, cLat + hh + padD); minLon = cLon - hw - padD; maxLon = cLon + hw + padD;
     const k = Math.cos(rad((minLat + maxLat) / 2)), margin = 24;
     const s = Math.min((W - margin * 2) / ((maxLon - minLon) * k), (H - margin * 2 - 20) / (maxLat - minLat));
-    const ox = W / 2 - ((minLon + maxLon) / 2) * k * s, oy = H / 2 + 10 + ((minLat + maxLat) / 2) * s;
-    return { a, b, N, pts, k, s, ox, oy, span, P: p => [ox + p.lon * k * s, oy - p.lat * s],
+    const ox = W / 2 - cLon * k * s, oy = H / 2 + 10 + cLat * s;
+    const P = p => [ox + p.lon * k * s, oy - p.lat * s];
+    return { kind: "flat", a, b, N, ll, k, s, ox, oy, span, P,
              lon0: -ox / (k * s), lon1: (W - ox) / (k * s), lat1: oy / s, lat0: (oy - H) / s };
   }
 
-  // Static layer (ocean, land, borders, graticule, airports), cached per size and route.
-  let base = null, baseKey = "";
+  // ----- Static layer, cached per view -----
+  let base = null, baseKey = "", surf = null;
+  const starSeed = Array.from({ length: 160 }, (_, i) => { const h = Math.sin(i * 127.1 + 311.7) * 43758.5453; return [h - Math.floor(h), (Math.sin(i * 269.5 + 183.3) * 43758.5453) % 1, (i * 7) % 5]; });
+
   function drawBase(v, W, H, dpr, C) {
-    const key = `${W}x${H}@${dpr}:${v.a.code}-${v.b.code}:${!!window.WORLD}`;
+    const sunT = Math.floor(Date.now() / 120000);   // the terminator moves 0.5° every 2 minutes
+    const q = dragState ? 0.5 : 1;   // paint the surface at half resolution while the globe is being dragged
+    const key = `${q}` + (v.kind === "globe"
+      ? `g${W}x${H}@${dpr}:${v.lat0.toFixed(3)},${v.lon0.toFixed(3)}:${v.R.toFixed(1)}:${sunT}:${!!window.WORLD}`
+      : `f${W}x${H}@${dpr}:${v.a.code}-${v.b.code}:${mapZoom}:${sunT}:${!!window.WORLD}`);
     if (key === baseKey) return base;
     base = base || document.createElement("canvas");
     base.width = Math.round(W * dpr); base.height = Math.round(H * dpr);
     const g = base.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.fillStyle = C.ocean; g.fillRect(0, 0, W, H);
+    const w = loadWorld(), S = sunVec(Date.now()), Wi = Math.max(1, Math.round(W * q)), Hi = Math.max(1, Math.round(H * q));
+    surf = surf || document.createElement("canvas");
+    surf.width = Wi; surf.height = Hi;
+    const sg = surf.getContext("2d", { willReadFrequently: true });
+    sg.setTransform(1, 0, 0, 1, 0, 0); sg.clearRect(0, 0, Wi, Hi); sg.setTransform(q, 0, 0, q, 0, 0);
+    sg.fillStyle = "#fff";
 
-    const w = loadWorld(), X = lon => v.ox + lon * v.k * v.s, Y = lat => v.oy - lat * v.s;
-    if (w) {
-      for (const off of [-360, 0, 360]) {
-        if (v.lon1 < -180 + off || v.lon0 > 180 + off) continue;
-        const vis = b => !(b[2] + off < v.lon0 || b[0] + off > v.lon1 || b[3] < v.lat0 || b[1] > v.lat1);
-        // land
-        g.fillStyle = C.land; g.beginPath();
+    if (v.kind === "globe") {
+      const { R, cx, cy, C: Cv, E, NB } = v;
+      // space, stars, atmosphere
+      const sky = g.createRadialGradient(cx, cy, R * 0.5, cx, cy, Math.max(W, H));
+      sky.addColorStop(0, C.space2); sky.addColorStop(1, C.space);
+      g.fillStyle = sky; g.fillRect(0, 0, W, H);
+      for (const [sx, sy, m] of starSeed) {
+        const x = Math.abs(sx) * W, y = Math.abs(sy) * H;
+        if (Math.hypot(x - cx, y - cy) < R * 1.05) continue;
+        g.fillStyle = `rgba(220, 230, 255, ${0.25 + m * 0.12})`;
+        g.fillRect(x, y, m > 3 ? 1.6 : 1, m > 3 ? 1.6 : 1);
+      }
+      const atm = g.createRadialGradient(cx, cy, R * 0.97, cx, cy, R * 1.14);
+      atm.addColorStop(0, "rgba(120, 196, 255, 0.55)"); atm.addColorStop(0.35, "rgba(90, 160, 255, 0.18)"); atm.addColorStop(1, "rgba(90, 160, 255, 0)");
+      g.fillStyle = atm; g.beginPath(); g.arc(cx, cy, R * 1.14, 0, Math.PI * 2); g.fill();
+
+      // land mask (far side folded onto the horizon)
+      if (w) {
+        const q = [0, 0, 0];
         for (const poly of w.polys) {
-          if (!vis(poly.box)) continue;
-          for (const r of poly.rings) {
-            g.moveTo(X(r[0] + off), Y(r[1]));
-            for (let i = 2; i < r.length; i += 2) g.lineTo(X(r[i] + off), Y(r[i + 1]));
-            g.closePath();
+          sg.beginPath(); let front = false;
+          for (const r of poly.xyz) {
+            for (let i = 0; i < r.length; i += 3) {
+              v.ground([r[i], r[i + 1], r[i + 2]], q); if (q[2] > 0) front = true;
+              i ? sg.lineTo(q[0], q[1]) : sg.moveTo(q[0], q[1]);
+            }
+            sg.closePath();
           }
+          if (front) sg.fill("evenodd");
         }
-        g.fill("evenodd");
-        // coastlines (kind 1) and country borders (kind 2); skip the artificial cut along ±180°
+      }
+      const Sv = [dot(S, E), dot(S, NB), dot(S, Cv)];
+      paintSurface(sg, Wi, Hi, scaled((px, py, P) => {
+        const xn = (px - cx) / R, yn = (cy - py) / R, r2 = xn * xn + yn * yn;
+        if (r2 > 1) return false;
+        const z = Math.sqrt(1 - r2);
+        P[0] = xn * E[0] + yn * NB[0] + z * Cv[0]; P[1] = xn * E[1] + yn * NB[1] + z * Cv[1]; P[2] = xn * E[2] + yn * NB[2] + z * Cv[2];
+        P[3] = z; P[4] = xn; P[5] = yn; P[6] = deg(Math.asin(P[2])); P[7] = deg(Math.atan2(P[1], P[0]));
+        return true;
+      }, q), S, Sv);
+      g.drawImage(surf, 0, 0, W, H);
+
+      // vector detail, clipped to the disc
+      g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+      g.strokeStyle = C.gridGlobe; g.lineWidth = 0.8; g.beginPath();
+      const front = (lat, lon) => { const p = V3(lat, lon); return [cx + R * dot(p, E), cy - R * dot(p, NB), dot(p, Cv) > 0]; };
+      for (let lon = -180; lon < 180; lon += 15) {
+        let pen = false;
+        for (let lat = -90; lat <= 90; lat += 2) { const [x, y, ok] = front(lat, lon); if (ok) { pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; } else pen = false; }
+      }
+      for (let lat = -75; lat <= 75; lat += 15) {
+        let pen = false;
+        for (let lon = -180; lon <= 180; lon += 2) { const [x, y, ok] = front(lat, lon); if (ok) { pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; } else pen = false; }
+      }
+      g.stroke();
+      if (w) {
         for (const kind of ["2", "1"]) {
           g.beginPath();
-          w.arcs.forEach((arc, ai) => {
-            if (w.kind[ai] !== kind || !vis(w.boxes[ai])) return;
-            for (let i = 0; i < arc.length; i += 2) {
-              const lon = arc[i], prev = arc[i - 2];
-              const cut = i && ((Math.abs(lon) > 179.99 && Math.abs(prev) > 179.99) || Math.abs(lon - prev) > 90);
-              if (!i || cut) g.moveTo(X(lon + off), Y(arc[i + 1])); else g.lineTo(X(lon + off), Y(arc[i + 1]));
+          w.arcXyz.forEach((arc, ai) => {
+            if (w.kind[ai] !== kind) return;
+            let pen = false;
+            for (let i = 0; i < arc.length; i += 3) {
+              const x = arc[i] * E[0] + arc[i + 1] * E[1] + arc[i + 2] * E[2];
+              const y = arc[i] * NB[0] + arc[i + 1] * NB[1] + arc[i + 2] * NB[2];
+              const z = arc[i] * Cv[0] + arc[i + 1] * Cv[1] + arc[i + 2] * Cv[2];
+              if (z > 0) { pen ? g.lineTo(cx + R * x, cy - R * y) : g.moveTo(cx + R * x, cy - R * y); pen = true; } else pen = false;
             }
           });
-          if (kind === "2") { g.strokeStyle = C.border; g.lineWidth = 0.8; g.setLineDash([3, 3]); }
-          else { g.strokeStyle = C.coast; g.lineWidth = 1; g.setLineDash([]); }
+          if (kind === "2") { g.strokeStyle = C.borderGlobe; g.lineWidth = 0.7; g.setLineDash([3, 3]); }
+          else { g.strokeStyle = C.coastGlobe; g.lineWidth = 0.9; g.setLineDash([]); }
           g.stroke();
         }
         g.setLineDash([]);
       }
-    }
+      // rim light
+      const rim = g.createRadialGradient(cx, cy, R * 0.86, cx, cy, R);
+      rim.addColorStop(0, "rgba(140, 200, 255, 0)"); rim.addColorStop(1, "rgba(140, 200, 255, 0.28)");
+      g.fillStyle = rim; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+      g.restore();
+    } else {
+      const X = lon => v.ox + lon * v.k * v.s, Y = lat => v.oy - lat * v.s;
+      g.fillStyle = C.space; g.fillRect(0, 0, W, H);
+      if (w) {
+        for (const off of [-360, 0, 360]) {
+          if (v.lon1 < -180 + off || v.lon0 > 180 + off) continue;
+          for (const poly of w.polys) {
+            const bx = poly.box;
+            if (bx[2] + off < v.lon0 || bx[0] + off > v.lon1 || bx[3] < v.lat0 || bx[1] > v.lat1) continue;
+            sg.beginPath();
+            for (const r of poly.rings) {
+              sg.moveTo(X(r[0] + off), Y(r[1]));
+              for (let i = 2; i < r.length; i += 2) sg.lineTo(X(r[i] + off), Y(r[i + 1]));
+              sg.closePath();
+            }
+            sg.fill("evenodd");
+          }
+        }
+      }
+      paintSurface(sg, Wi, Hi, scaled((px, py, P) => {
+        const lat = (v.oy - py) / v.s; let lon = (px - v.ox) / (v.k * v.s);
+        if (lat > 90 || lat < -90) return false;
+        lon = ((lon + 540) % 360) - 180;
+        const c = Math.cos(rad(lat));
+        P[0] = c * Math.cos(rad(lon)); P[1] = c * Math.sin(rad(lon)); P[2] = Math.sin(rad(lat));
+        P[3] = -1; P[6] = lat; P[7] = lon;
+        return true;
+      }, q), S, null);
+      g.drawImage(surf, 0, 0, W, H);
 
-    // graticule
-    const step = v.span > 60 ? 20 : v.span > 25 ? 10 : 5;
-    g.strokeStyle = C.grid; g.lineWidth = 1; g.fillStyle = C.muted; g.font = `10px ${css("--font-mono")}`;
-    for (let L = Math.ceil(v.lon0 / step) * step; L <= v.lon1; L += step) {
-      const x = X(L); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
-      const lw = ((L % 360) + 540) % 360 - 180; g.fillText(`${Math.abs(lw)}°${lw < 0 ? "W" : lw > 0 ? "E" : ""}`, x + 3, H - 6);
-    }
-    for (let L = Math.ceil(v.lat0 / step) * step; L <= v.lat1; L += step) {
-      const y = Y(L); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
-      g.fillText(`${Math.abs(L)}°${L < 0 ? "S" : L > 0 ? "N" : ""}`, W - 34, y - 3);
-    }
-
-    // other airports in view, for orientation
-    g.font = `10px ${css("--font-mono")}`;
-    const taken = [[X(v.pts[0].lon), Y(v.pts[0].lat)], [X(v.pts[v.N].lon), Y(v.pts[v.N].lat)]];
-    for (const ap of AIRPORTS) {
-      if (ap === v.a || ap === v.b) continue;
-      for (const off of [-360, 0, 360]) {
-        const x = X(ap.lon + off), y = Y(ap.lat);
-        if (x < 8 || x > W - 64 || y < 24 || y > H - 20) continue;
-        if (taken.some(([tx, ty]) => Math.abs(tx - x) < 34 && Math.abs(ty - y) < 14)) continue;
-        taken.push([x, y]);
-        g.fillStyle = C.muted; g.beginPath(); g.arc(x, y, 2, 0, Math.PI * 2); g.fill();
-        g.fillText(ap.code, x + 5, y + 3);
+      if (w) {
+        for (const off of [-360, 0, 360]) {
+          if (v.lon1 < -180 + off || v.lon0 > 180 + off) continue;
+          const vis = b => !(b[2] + off < v.lon0 || b[0] + off > v.lon1 || b[3] < v.lat0 || b[1] > v.lat1);
+          for (const kind of ["2", "1"]) {
+            g.beginPath();
+            w.arcs.forEach((arc, ai) => {
+              if (w.kind[ai] !== kind || !vis(w.boxes[ai])) return;
+              for (let i = 0; i < arc.length; i += 2) {
+                const lon = arc[i], prev = arc[i - 2];
+                const cut = i && ((Math.abs(lon) > 179.99 && Math.abs(prev) > 179.99) || Math.abs(lon - prev) > 90);
+                if (!i || cut) g.moveTo(X(lon + off), Y(arc[i + 1])); else g.lineTo(X(lon + off), Y(arc[i + 1]));
+              }
+            });
+            if (kind === "2") { g.strokeStyle = C.borderGlobe; g.lineWidth = 0.8; g.setLineDash([3, 3]); }
+            else { g.strokeStyle = C.coastGlobe; g.lineWidth = 1; g.setLineDash([]); }
+            g.stroke();
+          }
+          g.setLineDash([]);
+        }
+      }
+      const step = v.span > 60 ? 20 : v.span > 25 ? 10 : 5;
+      g.strokeStyle = C.gridGlobe; g.lineWidth = 1; g.fillStyle = C.ink; g.font = `11px ${css("--font-mono")}`;
+      for (let L = Math.ceil(v.lon0 / step) * step; L <= v.lon1; L += step) {
+        const x = X(L); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
+        const lw = ((L % 360) + 540) % 360 - 180; g.fillText(`${Math.abs(lw)}°${lw < 0 ? "W" : lw > 0 ? "E" : ""}`, x + 3, H - 6);
+      }
+      for (let L = Math.ceil(v.lat0 / step) * step; L <= v.lat1; L += step) {
+        const y = Y(L); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+        g.fillText(`${Math.abs(L)}°${L < 0 ? "S" : L > 0 ? "N" : ""}`, W - 34, y - 3);
       }
     }
 
-    // scale bar in nautical miles (1° of latitude = 60 nm)
-    const pxPerNm = v.s / 60, target = 90 / pxPerNm, mag = Math.pow(10, Math.floor(Math.log10(target)));
+    // other airports in view, for orientation
+    g.font = `11px ${css("--font-mono")}`;
+    const ends = v.kind === "globe" ? [v.proj(v.pts[0]), v.proj(v.pts[v.N])] : [v.P(v.ll[0]), v.P(v.ll[v.N])];
+    const taken = ends.map(p => [p[0], p[1]]);
+    for (const ap of AIRPORTS) {
+      if (ap === v.a || ap === v.b) continue;
+      const spots = [];
+      if (v.kind === "globe") { const p = V3(ap.lat, ap.lon); if (dot(p, v.C) > 0.2) spots.push(v.proj(p)); }
+      else for (const off of [-360, 0, 360]) spots.push(v.P({ lat: ap.lat, lon: ap.lon + off }));
+      for (const [x, y] of spots) {
+        if (x < 8 || x > W - 64 || y < 30 || y > H - 20) continue;
+        if (taken.some(([tx, ty]) => Math.abs(tx - x) < 34 && Math.abs(ty - y) < 14)) continue;
+        taken.push([x, y]);
+        g.fillStyle = C.city; g.beginPath(); g.arc(x, y, 2.2, 0, Math.PI * 2); g.fill();
+        g.lineWidth = 3; g.strokeStyle = "rgba(0, 0, 0, 0.55)"; g.strokeText(ap.code, x + 5, y + 4);
+        g.fillStyle = C.ink; g.fillText(ap.code, x + 5, y + 4);
+      }
+    }
+
+    // scale bar in nautical miles (1° of arc = 60 nm), measured at the view center
+    const pxPerNm = v.kind === "globe" ? v.R / 3440 : v.s / 60;
+    const target = 90 / pxPerNm, mag = Math.pow(10, Math.floor(Math.log10(target)));
     const nm = [1, 2, 5, 10].map(m => m * mag).reverse().find(n => n <= target) || mag, len = nm * pxPerNm;
     const sx0 = 14, sy0 = H - 24;
-    g.strokeStyle = C.ink; g.lineWidth = 1.5; g.beginPath();
+    g.lineWidth = 4; g.strokeStyle = "rgba(0, 0, 0, 0.5)"; g.beginPath();
     g.moveTo(sx0, sy0 - 4); g.lineTo(sx0, sy0); g.lineTo(sx0 + len, sy0); g.lineTo(sx0 + len, sy0 - 4); g.stroke();
-    g.fillStyle = C.ink; g.fillText(`${nm.toLocaleString()} nm`, sx0 + len + 6, sy0 + 3);
+    g.lineWidth = 1.5; g.strokeStyle = C.ink; g.stroke();
+    g.lineWidth = 3; g.strokeStyle = "rgba(0, 0, 0, 0.55)"; g.strokeText(`${nm.toLocaleString()} nm`, sx0 + len + 6, sy0 + 4);
+    g.fillStyle = C.ink; g.fillText(`${nm.toLocaleString()} nm`, sx0 + len + 6, sy0 + 4);
 
     baseKey = key;
     return base;
   }
 
+  // ----- Dynamic layer: route, waypoints, aircraft -----
+  // ----- 3D airliner -----
+  // A small polygon model (x forward, y right wing, z up; fuselage length 1) drawn with flat shading and
+  // painter's sorting. It is oriented by the same camera as the globe, so it pitches, turns and tilts with the view.
+  const PLANE = (() => {
+    const faces = [], add = (pts, kind) => faces.push({ pts, kind });
+    const SIDES = 12;
+    const stations = [[0.5, 0.004, -0.004], [0.47, 0.03, -0.004], [0.42, 0.05, 0], [0.33, 0.056, 0],
+                      [-0.28, 0.056, 0], [-0.4, 0.04, 0.012], [-0.5, 0.01, 0.03]];
+    const rings = stations.map(([x, r, zc]) => Array.from({ length: SIDES }, (_, k) => {
+      const a = 2 * Math.PI * k / SIDES; return [x, Math.cos(a) * r, zc + Math.sin(a) * r];
+    }));
+    for (let s = 0; s < rings.length - 1; s++) {
+      for (let k = 0; k < SIDES; k++) {
+        const k2 = (k + 1) % SIDES, mid = Math.sin(2 * Math.PI * (k + 0.5) / SIDES);
+        const kind = s === 1 && mid > 0.25 ? "glass" : s === 3 && Math.abs(mid) < 0.3 ? "stripe" : "body";
+        add([rings[s][k], rings[s][k2], rings[s + 1][k2], rings[s + 1][k]], kind);
+      }
+    }
+    for (const sg of [1, -1]) {
+      add([[0.1, 0.05 * sg, -0.02], [-0.13, 0.05 * sg, -0.02], [-0.24, 0.5 * sg, 0.03], [-0.14, 0.5 * sg, 0.03]], "wing");
+      add([[-0.36, 0.03 * sg, 0.02], [-0.46, 0.03 * sg, 0.02], [-0.5, 0.19 * sg, 0.035], [-0.44, 0.19 * sg, 0.035]], "wing");
+      const ey = 0.19 * sg, ez = -0.055, er = 0.03, n = 8, front = [], back = [];
+      for (let k = 0; k < n; k++) {
+        const a = 2 * Math.PI * k / n;
+        front.push([0.11, ey + Math.cos(a) * er, ez + Math.sin(a) * er]);
+        back.push([-0.05, ey + Math.cos(a) * er * 0.8, ez + Math.sin(a) * er * 0.8]);
+      }
+      for (let k = 0; k < n; k++) { const k2 = (k + 1) % n; add([front[k], front[k2], back[k2], back[k]], "engine"); }
+      add(front, "intake");
+      add([[0.06, ey, ez + er], [-0.03, ey, ez + er], [-0.05, ey, -0.015], [0.04, ey, -0.015]], "engine");
+    }
+    add([[-0.29, 0, 0.05], [-0.46, 0, 0.05], [-0.5, 0, 0.25], [-0.43, 0, 0.25]], "tail");
+    for (const f of faces) {
+      const [a, b, c] = f.pts.length > 3 && f.pts[0][0] === f.pts[1][0] && f.pts[0][1] === f.pts[1][1] ? [f.pts[0], f.pts[2], f.pts[3]] : f.pts;
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n) || 1;
+      f.n = n.map(x => x / l);
+    }
+    return faces;
+  })();
+  const hexRGB = h => { const m = h.replace("#", ""), v = parseInt(m.length === 3 ? m.replace(/./g, c => c + c) : m, 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
+  const LIGHT = (() => { const l = [-0.5, 0.6, 0.65], n = Math.hypot(...l); return l.map(x => x / n); })();
+  const HALF = (() => { const h = [LIGHT[0], LIGHT[1], LIGHT[2] + 1], n = Math.hypot(...h); return h.map(x => x / n); })();
+
+  // F, Rt, U: the model's forward, right and up axes in view coordinates (x right, y up, z toward the viewer).
+  function drawPlane3D(ox, oy, F, Rt, U, size, shadowAt, C) {
+    const P = p => [p[0] * F[0] + p[1] * Rt[0] + p[2] * U[0], p[0] * F[1] + p[1] * Rt[1] + p[2] * U[1], p[0] * F[2] + p[1] * Rt[2] + p[2] * U[2]];
+    if (shadowAt) {   // silhouette flattened onto the ground
+      ctx.fillStyle = "rgba(0, 0, 0, 0.32)"; ctx.beginPath();
+      for (const f of PLANE) {
+        f.pts.forEach((p, i) => { const v = P([p[0], p[1], 0]), x = shadowAt[0] + v[0] * size, y = shadowAt[1] - v[1] * size; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+        ctx.closePath();
+      }
+      ctx.fill("nonzero");
+    }
+    const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, size * 0.9);
+    glow.addColorStop(0, "rgba(255, 225, 170, 0.28)"); glow.addColorStop(1, "rgba(255, 225, 170, 0)");
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ox, oy, size * 0.9, 0, Math.PI * 2); ctx.fill();
+    const COL = { body: [244, 242, 238], stripe: hexRGB(C.gold), tail: hexRGB(C.gold), wing: [200, 206, 218],
+                  engine: [140, 150, 168], intake: [34, 38, 52], glass: [28, 36, 66] };
+    const list = PLANE.map(f => {
+      const vs = f.pts.map(P);
+      return { f, vs, z: vs.reduce((s, v) => s + v[2], 0) / vs.length, n: P(f.n) };
+    }).sort((a, b) => a.z - b.z);
+    ctx.lineJoin = "round";
+    for (const it of list) {
+      let n = it.n; if (n[2] < 0) n = n.map(x => -x);
+      const diff = Math.max(0, n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]);
+      const spec = Math.pow(Math.max(0, n[0] * HALF[0] + n[1] * HALF[1] + n[2] * HALF[2]), 24) * (it.f.kind === "glass" ? 0.9 : 0.35);
+      const base = COL[it.f.kind], k = 0.4 + 0.6 * diff;
+      const rgb = base.map(c => Math.min(255, Math.round(c * k + 255 * spec)));
+      ctx.fillStyle = ctx.strokeStyle = `rgb(${rgb})`; ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      it.vs.forEach((v, i) => { const x = ox + v[0] * size, y = oy - v[1] * size; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    // navigation lights: red on the left wingtip, green on the right, white strobe on the tail
+    const lights = [[[-0.24, -0.5, 0.03], "255, 70, 70"], [[-0.24, 0.5, 0.03], "80, 255, 140"]];
+    if (Math.floor(Date.now() / 600) % 2 === 0) lights.push([[-0.5, 0, 0.25], "255, 255, 255"]);
+    for (const [p, rgb] of lights) {
+      const v = P(p), x = ox + v[0] * size, y = oy - v[1] * size;
+      const gl = ctx.createRadialGradient(x, y, 0, x, y, 6);
+      gl.addColorStop(0, `rgba(${rgb}, 1)`); gl.addColorStop(0.3, `rgba(${rgb}, 0.6)`); gl.addColorStop(1, `rgba(${rgb}, 0)`);
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // Nose up in the climb, slightly down on descent
+  function pitchFor(plan, f) {
+    const [phase] = phaseAt(f, plan.totalMin);
+    return rad(phase === "Climb" || phase === "Takeoff" ? 9 : phase === "Descent" || phase === "Landing" ? -4 : 0);
+  }
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  function pitched(F, U, p) { const c = Math.cos(p), s = Math.sin(p); return [F.map((x, i) => x * c + U[i] * s), U.map((x, i) => x * c - F[i] * s)]; }
+
+  function label(text, x, y, C) {
+    ctx.font = `700 14px ${css("--font-mono")}`;
+    ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0, 0, 0, 0.65)"; ctx.strokeText(text, x, y);
+    ctx.fillStyle = C.ink; ctx.fillText(text, x, y);
+  }
+  function polyline(list, from, to) {
+    ctx.beginPath(); let pen = false;
+    for (let i = from; i <= to; i++) { const [x, y, ok] = list[i]; if (ok) { pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true; } else pen = false; }
+    ctx.stroke();
+  }
+
   function drawMap(plan, f) {
+    lastMap = { plan, f };
     const rect = canvas.getBoundingClientRect();
     if (!rect.width) return;
     const dpr = window.devicePixelRatio || 1, W = rect.width, H = rect.height;
     if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     }
-    const C = { ink: css("--ink"), muted: css("--muted"), route: css("--route"), focus: css("--focus"), brk: css("--break"),
-                ocean: css("--ocean"), land: css("--land"), coast: css("--coast"), border: css("--border"), grid: css("--grid") };
-    const v = mapView(plan, W, H), { pts, N, P } = v;
+    const C = { ink: css("--ink"), route: css("--route"), focus: css("--focus"), brk: css("--break"), space: css("--space"), space2: css("--space-2"),
+                city: css("--city"), gold: css("--gold"), gridGlobe: css("--grid-globe"), coastGlobe: css("--coast-globe"), borderGlobe: css("--border-globe") };
+    const v = mapMode === "globe" ? globeView(plan, f, W, H) : flatView(plan, W, H), N = v.N;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(drawBase(v, W, H, dpr, C), 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // route: flown (solid) and remaining (dashed magenta)
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
     const cut = Math.round(f * N);
-    ctx.lineWidth = 2.5; ctx.lineCap = "round";
-    ctx.setLineDash([7, 6]); ctx.strokeStyle = C.route; ctx.beginPath();
-    pts.slice(cut).forEach((p, i) => { const [x, y] = P(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
-    ctx.setLineDash([]); ctx.strokeStyle = C.ink; ctx.beginPath();
-    pts.slice(0, cut + 1).forEach((p, i) => { const [x, y] = P(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
 
-    // break waypoints along the route
-    plan.segments.filter(sg => sg.type === "break").forEach(sg => {
-      const [x, y] = P(pts[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)]);
-      ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); ctx.stroke();
-    });
-
-    // origin and destination
-    ctx.font = `700 13px ${css("--font-mono")}`;
-    [[pts[0], v.a.code], [pts[N], v.b.code]].forEach(([p, code]) => {
-      const [x, y] = P(p);
-      ctx.fillStyle = C.ocean; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = C.focus; ctx.lineWidth = 2; ctx.stroke();
-      ctx.lineWidth = 3; ctx.strokeStyle = C.ocean; ctx.strokeText(code, x + 10, y - 8);
-      ctx.fillStyle = C.ink; ctx.fillText(code, x + 10, y - 8);
-    });
-
-    // aircraft
-    const fi = Math.min(N, f * N), i0 = Math.floor(fi), i1 = Math.min(N, i0 + 1), t = fi - i0;
-    const pa = P(pts[i0]), pb = P(pts[i1]);
-    const x = pa[0] + (pb[0] - pa[0]) * t, y = pa[1] + (pb[1] - pa[1]) * t;
-    const h0 = P(pts[Math.min(N - 1, i0)]), h1 = P(pts[Math.min(N, i0 + 1)]);
-    const ang = Math.atan2(h1[1] - h0[1], h1[0] - h0[0]);
-    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
-    ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(12, 0); ctx.lineTo(4, 2); ctx.lineTo(-1, 10); ctx.lineTo(-4, 10); ctx.lineTo(-1, 2); ctx.lineTo(-8, 2);
-    ctx.lineTo(-11, 6); ctx.lineTo(-13, 6); ctx.lineTo(-11, 0); ctx.lineTo(-13, -6); ctx.lineTo(-11, -6); ctx.lineTo(-8, -2);
-    ctx.lineTo(-1, -2); ctx.lineTo(-4, -10); ctx.lineTo(-1, -10); ctx.lineTo(4, -2); ctx.closePath();
-    ctx.fill(); ctx.stroke(); ctx.restore();
+    if (v.kind === "globe") {
+      const hAt = i => v.lift * Math.sin(Math.PI * i / N);
+      const groundPts = v.pts.map(p => v.proj(p, 0).slice(0, 2).concat(dot(p, v.C) > 0));
+      const air = v.pts.map((p, i) => v.proj(p, hAt(i)));
+      // shadow of the track on the ground
+      ctx.setLineDash([]); ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.35)"; polyline(groundPts, 0, N);
+      // flown (glowing) and remaining (dashed magenta) legs
+      ctx.save(); ctx.shadowColor = C.focus; ctx.shadowBlur = 10; ctx.lineWidth = 3; ctx.strokeStyle = C.ink; polyline(air, 0, cut); ctx.restore();
+      ctx.setLineDash([7, 6]); ctx.lineWidth = 2.5; ctx.strokeStyle = C.route; polyline(air, cut, N); ctx.setLineDash([]);
+      // breaks
+      plan.segments.filter(sg => sg.type === "break").forEach(sg => {
+        const i = Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N), [x, y, ok] = air[i];
+        if (!ok) return;
+        ctx.fillStyle = C.brk; ctx.strokeStyle = "rgba(0, 0, 0, 0.6)"; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+      });
+      // airports
+      [[0, v.a.code], [N, v.b.code]].forEach(([i, code]) => {
+        const [x, y, ok] = groundPts[i]; if (!ok) return;
+        ctx.save(); ctx.shadowColor = C.focus; ctx.shadowBlur = 12;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)"; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = C.focus; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+        label(code, x + 10, y - 9, C);
+      });
+      // aircraft: lifted position, drop line and ground shadow
+      const fi = Math.min(N, f * N), i0 = Math.min(N - 1, Math.floor(fi)), t = fi - i0;
+      const pv = [0, 1, 2].map(k => v.pts[i0][k] + (v.pts[i0 + 1][k] - v.pts[i0][k]) * t), l = Math.hypot(...pv);
+      const pu = pv.map(c => c / l), h = v.lift * Math.sin(Math.PI * f);
+      const [px, py, pok] = v.proj(pu, h), [gx, gy] = v.proj(pu, 0);
+      if (pok && dot(pu, v.C) > -0.05) {
+        ctx.setLineDash([2, 3]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+        ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(px, py); ctx.stroke(); ctx.setLineDash([]);
+        const dir = v.pts[i0 + 1].map((c, k) => c - v.pts[i0][k]), along = dot(dir, pu);
+        const tw = dir.map((c, k) => c - pu[k] * along), tl = Math.hypot(...tw) || 1, T = tw.map(c => c / tl);
+        const toView = w => [dot(w, v.E), dot(w, v.NB), dot(w, v.C)];
+        const [Fw, Uw] = pitched(T, pu, pitchFor(plan, f));
+        drawPlane3D(px, py, toView(Fw), toView(cross(T, pu)), toView(Uw), 66, [gx, gy], C);
+      }
+    } else {
+      const P = v.P, pts = v.ll.map(p => [...P(p), true]);
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.35)"; ctx.setLineDash([]);
+      ctx.save(); ctx.translate(2, 3); polyline(pts, 0, N); ctx.restore();
+      ctx.save(); ctx.shadowColor = C.focus; ctx.shadowBlur = 10; ctx.lineWidth = 3; ctx.strokeStyle = C.ink; polyline(pts, 0, cut); ctx.restore();
+      ctx.setLineDash([7, 6]); ctx.lineWidth = 2.5; ctx.strokeStyle = C.route; polyline(pts, cut, N); ctx.setLineDash([]);
+      plan.segments.filter(sg => sg.type === "break").forEach(sg => {
+        const [x, y] = pts[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)];
+        ctx.fillStyle = C.brk; ctx.strokeStyle = "rgba(0, 0, 0, 0.6)"; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+      });
+      [[pts[0], v.a.code], [pts[N], v.b.code]].forEach(([[x, y], code]) => {
+        ctx.save(); ctx.shadowColor = C.focus; ctx.shadowBlur = 12;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)"; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = C.focus; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+        label(code, x + 10, y - 9, C);
+      });
+      const fi = Math.min(N, f * N), i0 = Math.min(N - 1, Math.floor(fi)), t = fi - i0;
+      const [ax, ay] = pts[i0], [bx, by] = pts[i0 + 1], hx = ax + (bx - ax) * t, hy = ay + (by - ay) * t;
+      // the flat map is seen from a fixed 40° camera tilt so the aircraft still reads in 3D
+      const ang = Math.atan2(by - ay, bx - ax), tilt = rad(40), ct = Math.cos(tilt), st = Math.sin(tilt);
+      const tv = w => [w[0], w[1] * ct + w[2] * st, -w[1] * st + w[2] * ct];
+      const F0 = [Math.cos(ang), -Math.sin(ang), 0], U0 = [0, 0, 1], [Fp, Up] = pitched(F0, U0, pitchFor(plan, f));
+      const lift = 16 * Math.sin(Math.PI * Math.min(1, f * 1.0));
+      drawPlane3D(hx, hy - lift - 4, tv(Fp), tv(cross(F0, U0)), tv(Up), 62, [hx, hy], C);
+    }
   }
+
+  // ----- Map controls -----
+  function redrawMap() { if (lastMap && flight) drawMap(lastMap.plan, lastMap.f); }
+  function syncMapTools() {
+    document.querySelectorAll("[data-map-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mapMode === mapMode)));
+    $("ndHint").textContent = mapMode === "globe" ? "Drag to look around · double-click to follow the plane" : "";
+    canvas.style.cursor = mapMode === "globe" ? "grab" : "";
+  }
+  document.querySelectorAll("[data-map-mode]").forEach(b => b.addEventListener("click", () => {
+    mapMode = b.dataset.mapMode; store.set("sfd.mapMode", mapMode); mapZoom = 1; userView = null; syncMapTools(); redrawMap();
+  }));
+  $("zoomIn").addEventListener("click", () => { mapZoom = Math.min(8, mapZoom * 1.5); redrawMap(); });
+  $("zoomOut").addEventListener("click", () => { mapZoom = Math.max(0.35, mapZoom / 1.5); redrawMap(); });
+  let dragState = null, dragFrame = 0;
+  canvas.addEventListener("pointerdown", e => {
+    if (mapMode !== "globe" || !lastMap) return;
+    const v = globeView(lastMap.plan, lastMap.f, canvas.clientWidth, canvas.clientHeight);
+    dragState = { x: e.clientX, y: e.clientY, lat: v.tLat, lon: v.tLon, R: v.R };
+    canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing";
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!dragState) return;
+    const dx = e.clientX - dragState.x, dy = e.clientY - dragState.y;
+    const lat = Math.max(-85, Math.min(85, dragState.lat + deg(dy / dragState.R)));
+    const lon = dragState.lon - deg(dx / dragState.R) / Math.max(0.25, Math.cos(rad(lat)));
+    userView = { lat, lon }; userViewUntil = Date.now() + LOOK_MS;
+    if (!dragFrame) dragFrame = requestAnimationFrame(() => { dragFrame = 0; redrawMap(); });
+  });
+  const endDrag = () => { if (dragState) { dragState = null; canvas.style.cursor = "grab"; userViewUntil = Date.now() + LOOK_MS; redrawMap(); } };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("dblclick", () => { userView = null; mapZoom = 1; redrawMap(); });
+  syncMapTools();
 
   // ---------- Landed + logbook ----------
   function renderLanded() {
