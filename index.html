@@ -262,6 +262,29 @@ button, input, select { font: inherit; color: inherit; }
   .t-route .code { font-size: 52px; }
 }
 
+/* Music bar */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.music-bar {
+  display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 10px 14px; border-radius: 16px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--route) 10%, transparent), var(--glass) 40%, color-mix(in srgb, var(--focus) 8%, transparent));
+  border: 1px solid var(--line); backdrop-filter: blur(12px);
+}
+.music-btn {
+  border: 1px solid color-mix(in srgb, var(--gold) 60%, transparent); background: rgba(8, 6, 24, .45); color: var(--gold);
+  border-radius: 999px; padding: 7px 16px 7px 34px; cursor: pointer; font-size: 15px; position: relative; letter-spacing: .04em;
+}
+.music-btn::before { content: ""; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  border-left: 10px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.music-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border-color: #f6d896; }
+.music-btn[aria-pressed="true"]::before { width: 10px; height: 12px; border: 0; border-left: 3px solid currentColor; border-right: 3px solid currentColor; box-sizing: border-box; }
+#musicStation {
+  background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font-size: 15px; min-width: 0; max-width: 100%;
+}
+#musicStation option { background: var(--panel); color: var(--ink); }
+.music-vol { display: flex; align-items: center; gap: 8px; }
+.music-vol input { accent-color: var(--gold); width: 120px; }
+.now-playing { color: var(--muted); font-style: italic; font-size: 14px; flex: 1 1 220px; min-width: 0; }
+
 /* Sound control */
 .top-right { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
 .sound {
@@ -378,6 +401,14 @@ td.num, th.num { text-align: right; }
       <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
     </div>
   </header>
+
+  <div class="music-bar" role="group" aria-label="Background music">
+    <button type="button" class="music-btn" id="musicBtn" aria-pressed="false">Play music</button>
+    <label class="sr-only" for="musicStation">Music style</label>
+    <select id="musicStation"></select>
+    <label class="music-vol"><span class="label">Volume</span><input type="range" id="musicVol" min="0" max="100" step="1"></label>
+    <span class="now-playing" id="nowPlaying"></span>
+  </div>
 
   <!-- PLANNER -->
   <section id="planner" class="planner">
@@ -770,6 +801,7 @@ td.num, th.num { text-align: right; }
   }
   function chime(kind, level = soundLevel) {
     if (!actx || !SOUND_LEVELS[level]) return;
+    try { music.duck(SOUND_REPEATS[level] * 1.8 + 1); } catch (e) {}
     try {
       master.gain.setValueAtTime(SOUND_LEVELS[level], actx.currentTime);
       const t0 = actx.currentTime + 0.05, gap = kind === "land" ? 2.4 : 1.7;
@@ -861,7 +893,7 @@ td.num, th.num { text-align: right; }
     $("pStripEnd").textContent = fmtStrip(p.totalMin);
   }
 
-  function saveDraft() { store.set("sfd.draft", draft); syncForm(); renderPass(); }
+  function saveDraft() { store.set("sfd.draft", draft); syncForm(); renderPass(); try { music.refresh(); } catch (e) {} }
 
   fromSel.addEventListener("change", () => {
     draft.from = fromSel.value;
@@ -972,6 +1004,7 @@ td.num, th.num { text-align: right; }
     draft.flightNo = flightNo(); store.set("sfd.draft", draft);
     lastSegIdx = -1;
     chime("focus");
+    music.startIfOn();
     keepAwake();
     showView();
   }
@@ -1045,6 +1078,7 @@ td.num, th.num { text-align: right; }
     syncCloud();
     flight = null; store.set("sfd.active", null);
     releaseWake();
+    music.setMode("focus");
     if (!diverted) { chime("land"); notify("Landed", `Welcome to ${byCode[plan.to].city}. ${fmtHM(study)} of study logged.`); }
     showView();
   }
@@ -1064,6 +1098,7 @@ td.num, th.num { text-align: right; }
              isBreak ? `Break for ${Math.round(seg.end - seg.start)} minutes.` : `Study block for ${Math.round(seg.end - seg.start)} minutes.`);
     }
     lastSegIdx = idx;
+    music.setMode(held ? "hold" : seg.type);
 
     const focusSegs = plan.segments.filter(s => s.type === "focus");
     const fNum = focusSegs.indexOf(seg) + 1;
@@ -1752,6 +1787,332 @@ td.num, th.num { text-align: right; }
     logbook = []; store.set("sfd.logbook", logbook); renderLog(); renderCareer(); syncCloud();
   });
   $("again").addEventListener("click", () => { lastLanding = null; showView(); });
+
+  // ---------- Cabin music ----------
+  // Generative background music played with Web Audio, one "station" per musical tradition. Nothing is
+  // downloaded: plucked strings are Karplus-Strong string models, gongs and metallophones are built from
+  // their (inharmonic) partials, flutes are tone plus breath noise. Study blocks play sparser and softer;
+  // breaks are fuller, with percussion. Holding pauses the music.
+  const STATIONS = {
+    kyoto:    { name: "Kyoto Garden", place: "Japan", instruments: "koto & shakuhachi", bpm: 58, root: 293.66, scale: [0, 1, 5, 7, 8] },
+    stream:   { name: "Mountain Stream", place: "China", instruments: "guzheng & dizi", bpm: 64, root: 196.0, scale: [0, 2, 4, 7, 9] },
+    kulintang:{ name: "Mindanao Gongs", place: "Philippines", instruments: "kulintang, agung & kubing", bpm: 84, root: 329.6, scale: [0, 2, 4, 7, 9] },
+    bali:     { name: "Temple Dawn", place: "Bali, Indonesia", instruments: "gamelan", bpm: 60, root: 277.2, scale: [0, 2.4, 4.8, 7.2, 9.6] },
+    ganges:   { name: "Ganges Evening", place: "India", instruments: "sitar, tanpura & tabla", bpm: 66, root: 138.6, scale: [0, 2, 4, 6, 7, 9, 11] },
+    cairo:    { name: "Cairo Nights", place: "Egypt & the Middle East", instruments: "oud, ney & riq", bpm: 76, root: 146.8, scale: [0, 1, 4, 5, 7, 8, 10] },
+    silk:     { name: "Silk Road", place: "Central Asia", instruments: "dutar & doira", bpm: 80, root: 164.8, scale: [0, 2, 3, 5, 7, 8, 10] },
+    sahel:    { name: "Sahel Sunrise", place: "West Africa", instruments: "kora & balafon", bpm: 84, root: 174.6, scale: [0, 2, 4, 5, 7, 9, 11] },
+    celtic:   { name: "Celtic Isles", place: "Ireland & Scotland", instruments: "harp & tin whistle", bpm: 70, root: 146.8, scale: [0, 2, 3, 5, 7, 9, 10] },
+    andes:    { name: "Andes Breeze", place: "Peru & Bolivia", instruments: "pan flute & charango", bpm: 72, root: 220.0, scale: [0, 3, 5, 7, 10] },
+    steel:    { name: "Island Breeze", place: "Trinidad & Tobago", instruments: "steel pan", bpm: 92, root: 261.6, scale: [0, 2, 4, 7, 9] },
+    pacific:  { name: "Pacific Shores", place: "Hawaii & the Pacific", instruments: "ukulele & slack-key guitar", bpm: 72, root: 196.0, scale: [0, 2, 4, 5, 7, 9, 11] }
+  };
+  const JAPAN = new Set(["HND", "NRT", "KIX", "CTS", "FUK", "OKA"]);
+  const NORTH_AFRICA = new Set(["CAI", "LXR", "HRG", "CMN", "RAK", "ALG", "TUN", "KRT"]);
+  function stationForAirport(code) {
+    const ap = byCode[code]; if (!ap) return "kyoto";
+    if (JAPAN.has(code)) return "kyoto";
+    if (NORTH_AFRICA.has(code)) return "cairo";
+    if (code === "HNL") return "pacific";
+    return { "East Asia": "stream", "Southeast Asia": "bali", "Philippines": "kulintang", "South Asia": "ganges", "Middle East": "cairo",
+             "Central Asia & Caucasus": "silk", "Europe": "celtic", "Africa": "sahel", "North America": "celtic",
+             "Central America & Caribbean": "steel", "South America": "andes", "Oceania": "pacific" }[ap.region] || "kyoto";
+  }
+
+  const music = (() => {
+    const saved = store.get("sfd.music", {});
+    const st = { on: !!saved.on, station: saved.station in STATIONS || saved.station === "auto" ? saved.station : "auto",
+                 vol: typeof saved.vol === "number" ? Math.max(0, Math.min(1, saved.vol)) : 0.5 };
+    let bus = null, input = null, timer = null, playing = false, cur = null, beat = 0, nextT = 0, mode = "focus", state = {};
+    const bufs = new Map();
+    const save = () => store.set("sfd.music", { on: st.on, station: st.station, vol: st.vol });
+    const R = Math.random, pick = a => a[Math.floor(R() * a.length)];
+
+    function setup() {
+      initAudio(); if (!actx) return false; if (bus) return true;
+      const comp = actx.createDynamicsCompressor();
+      comp.threshold.value = -22; comp.ratio.value = 3; comp.attack.value = 0.01; comp.release.value = 0.3;
+      bus = actx.createGain(); bus.gain.value = 0.0001;
+      input = actx.createGain();
+      const verb = actx.createConvolver(), wet = actx.createGain(), dry = actx.createGain();
+      verb.buffer = impulse(3.4, 2.6); wet.gain.value = 0.32; dry.gain.value = 0.85;
+      input.connect(dry).connect(comp); input.connect(verb).connect(wet).connect(comp);
+      comp.connect(bus).connect(actx.destination);
+      return true;
+    }
+    function impulse(sec, decay) {
+      const n = Math.floor(actx.sampleRate * sec), b = actx.createBuffer(2, n, actx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (R() * 2 - 1) * Math.pow(1 - i / n, decay); }
+      return b;
+    }
+    function noiseBuf() {
+      if (bufs.has("noise")) return bufs.get("noise");
+      const n = actx.sampleRate * 2, b = actx.createBuffer(1, n, actx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = R() * 2 - 1;
+      bufs.set("noise", b); return b;
+    }
+    // Karplus-Strong string, rendered once per (instrument, delay length) and retuned with playbackRate
+    function stringBuf(freq, kind) {
+      const P = { koto: [0.9965, 0.55, 3], guzheng: [0.9968, 0.6, 3.2], kora: [0.997, 0.5, 3], oud: [0.9945, 0.32, 2.4],
+                  sitar: [0.9985, 0.85, 4.5], tanpura: [0.9993, 0.6, 6], charango: [0.993, 0.78, 1.8], harp: [0.998, 0.42, 4],
+                  uke: [0.9925, 0.62, 1.6], slack: [0.9972, 0.4, 3.4], dutar: [0.9975, 0.5, 3.6] }[kind];
+      const sr = actx.sampleRate, N = Math.max(4, Math.round(sr / freq)), key = kind + N;
+      if (!bufs.has(key)) {
+        const [damp, bright, dur] = P, n = Math.floor(sr * dur), b = actx.createBuffer(1, n, sr), d = b.getChannelData(0);
+        const line = new Float32Array(N); let lp = 0;
+        for (let i = 0; i < N; i++) { lp += ((R() * 2 - 1) - lp) * bright; line[i] = lp; }
+        const buzz = kind === "sitar" || kind === "tanpura";
+        let idx = 0, peak = 0;
+        for (let i = 0; i < n; i++) {
+          const a = line[idx], c = line[(idx + 1) % N];
+          line[idx] = (a + c) * 0.5 * damp;
+          let v = a;
+          if (buzz) v = v + 0.35 * Math.tanh(v * 6) * (v > 0 ? 1 : 0.4);   // jawari bridge buzz
+          d[i] = v; peak = Math.max(peak, Math.abs(v)); idx = (idx + 1) % N;
+        }
+        for (let i = 0; i < n; i++) d[i] /= peak || 1;
+        bufs.set(key, { b, N });
+      }
+      return bufs.get(key);
+    }
+    function out(t, gain, pan) {
+      const g = actx.createGain(); g.gain.value = gain;
+      if (actx.createStereoPanner) { const p = actx.createStereoPanner(); p.pan.value = pan || 0; g.connect(p).connect(input); }
+      else g.connect(input);
+      return g;
+    }
+    function pluck(kind, freq, t, { gain = 0.3, pan = 0, slideTo = 0, slideAt = 0.25, tone = 0 } = {}) {
+      const { b, N } = stringBuf(freq, kind), src = actx.createBufferSource();
+      src.buffer = b; const rate = freq * N / actx.sampleRate;
+      src.playbackRate.setValueAtTime(rate, t);
+      if (slideTo) { src.playbackRate.setValueAtTime(rate, t + slideAt); src.playbackRate.exponentialRampToValueAtTime(slideTo * N / actx.sampleRate, t + slideAt + 0.22); }
+      let node = src;
+      if (tone) { const f = actx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = tone; node.connect(f); node = f; }
+      node.connect(out(t, gain, pan)); src.start(t); src.stop(t + b.duration / rate + 0.1);
+    }
+    function flute(freq, t, dur, { gain = 0.12, breath = 0.3, pan = 0, bend = 0, bright = 0.25, vib = 5 } = {}) {
+      const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain(), g2 = actx.createGain();
+      o.type = "sine"; o2.type = "triangle";
+      o.frequency.setValueAtTime(freq * (1 - bend), t); o.frequency.exponentialRampToValueAtTime(freq, t + 0.18);
+      o2.frequency.setValueAtTime(freq * 2 * (1 - bend), t); o2.frequency.exponentialRampToValueAtTime(freq * 2, t + 0.18);
+      const lfo = actx.createOscillator(), lg = actx.createGain();
+      lfo.frequency.value = vib; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(freq * 0.007, t + Math.min(0.6, dur * 0.5));
+      lfo.connect(lg); lg.connect(o.frequency);
+      g2.gain.value = bright;
+      const env = actx.createGain();
+      env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(1, t + 0.14);
+      env.gain.setValueAtTime(1, t + dur * 0.8); env.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.25);
+      o.connect(g); o2.connect(g2).connect(g); g.gain.value = 0.8; g.connect(env);
+      const nz = actx.createBufferSource(), bp = actx.createBiquadFilter(), ng = actx.createGain();
+      nz.buffer = noiseBuf(); nz.loop = true; bp.type = "bandpass"; bp.frequency.value = freq * 1.5; bp.Q.value = 1.2; ng.gain.value = breath;
+      nz.connect(bp).connect(ng).connect(env);
+      env.connect(out(t, gain, pan));
+      for (const s of [o, o2, lfo, nz]) { s.start(t); s.stop(t + dur + 0.35); }
+    }
+    // struck metal and wood: sum of partials [ratio, amplitude, decay seconds]
+    function struck(freq, t, partials, { gain = 0.2, pan = 0, beat = 0, drop = 0 } = {}) {
+      const o2 = out(t, gain, pan);
+      for (const [ratio, amp, dec] of partials) {
+        for (const det of beat ? [0, beat] : [0]) {
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.frequency.setValueAtTime(freq * ratio + det, t);
+          if (drop) o.frequency.exponentialRampToValueAtTime(freq * ratio * (1 - drop) + det, t + dec);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(amp * (det ? 0.6 : 1), t + 0.006);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+          o.connect(g).connect(o2); o.start(t); o.stop(t + dec + 0.05);
+        }
+      }
+    }
+    const GAMELAN = d => [[1, 1, d], [2.76, 0.35, d * 0.5], [5.4, 0.12, d * 0.25]];
+    const GONG = [[1, 1, 3.2], [2.0, 0.45, 2.2], [2.97, 0.2, 1.4], [4.1, 0.08, 0.8]];
+    const PAN = [[1, 1, 1.6], [2, 0.5, 1.1], [3.01, 0.22, 0.7], [4.02, 0.08, 0.4]];
+    const WOOD = [[1, 1, 0.45], [3.93, 0.3, 0.12], [9.2, 0.08, 0.05]];
+    function drum(freq, t, { gain = 0.25, dec = 0.3, bend = 1.6, noise = 0.15, pan = 0, tone = 2500 } = {}) {
+      const o = actx.createOscillator(), g = actx.createGain(), o2 = out(t, gain, pan);
+      o.frequency.setValueAtTime(freq * bend, t); o.frequency.exponentialRampToValueAtTime(freq, t + 0.04);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+      o.connect(g).connect(o2); o.start(t); o.stop(t + dec + 0.05);
+      if (noise) {
+        const n = actx.createBufferSource(), f = actx.createBiquadFilter(), ng = actx.createGain();
+        n.buffer = noiseBuf(); f.type = "bandpass"; f.frequency.value = tone; f.Q.value = 0.8;
+        ng.gain.setValueAtTime(noise, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        n.connect(f).connect(ng).connect(o2); n.start(t, R()); n.stop(t + 0.1);
+      }
+    }
+    function shaker(t, gain = 0.05, pan = 0) {
+      const n = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      n.buffer = noiseBuf(); f.type = "highpass"; f.frequency.value = 6000;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      n.connect(f).connect(g).connect(out(t, gain, pan)); n.start(t, R()); n.stop(t + 0.12);
+    }
+
+    // scale helpers
+    const hz = (s, deg, oct = 0) => { const L = s.scale.length, o = Math.floor(deg / L), i = ((deg % L) + L) % L; return s.root * Math.pow(2, s.scale[i] / 12 + o + oct); };
+    const walk = (key, lo, hi, steps = [-2, -1, -1, 0, 1, 1, 2]) => {
+      const v = Math.max(lo, Math.min(hi, (state[key] ?? Math.round((lo + hi) / 2)) + pick(steps))); state[key] = v; return v;
+    };
+
+    // Each station plays one beat at time t (seconds per beat: b). d = density (study 0.55, break 1).
+    const PLAY = {
+      kyoto(s, n, t, b, d, brk) {
+        if (R() < 0.5 * d + 0.15) pluck("koto", hz(s, walk("m", 3, 11)), t, { gain: 0.32, pan: -0.2 });
+        if (brk && R() < 0.4) pluck("koto", hz(s, walk("m", 3, 11)), t + b / 2, { gain: 0.22, pan: -0.2 });
+        if (n % 8 === 0) { pluck("koto", hz(s, 0, -1), t, { gain: 0.3, pan: 0.15 }); pluck("koto", hz(s, 3, -1), t + 0.09, { gain: 0.2, pan: 0.15 }); }
+        if (n % 16 === 4 && R() < 0.7) { let p = walk("f", 5, 9); flute(hz(s, p), t, b * 3, { gain: 0.1, bend: 0.06, breath: 0.45, pan: 0.25 });
+          p = walk("f", 5, 9); flute(hz(s, p), t + b * 3.5, b * 4, { gain: 0.09, bend: 0.04, breath: 0.45, pan: 0.25 }); }
+      },
+      stream(s, n, t, b, d, brk) {
+        if (R() < 0.45 * d + 0.15) pluck("guzheng", hz(s, walk("m", 4, 12)), t, { gain: 0.3, pan: -0.15 });
+        if (n % 16 === 0) for (let i = 0; i < 7; i++) pluck("guzheng", hz(s, 3 + i), t + i * 0.055, { gain: 0.16 + i * 0.01, pan: -0.3 + i * 0.08 });
+        if (n % 8 === 4) pluck("guzheng", hz(s, 0, -1), t, { gain: 0.26, pan: 0.2 });
+        if (brk && n % 8 === 2 && R() < 0.8) flute(hz(s, walk("f", 7, 12)), t, b * 2.5, { gain: 0.08, bright: 0.5, breath: 0.25, pan: 0.3, vib: 6 });
+      },
+      kulintang(s, n, t, b, d, brk) {
+        const K = [[1, 1, 1.1], [2.01, 0.35, 0.6], [3.0, 0.12, 0.35]];
+        if (R() < 0.5 * d + 0.2) struck(hz(s, walk("m", 0, 7)), t, K, { gain: 0.16, pan: -0.2, drop: 0.01 });
+        if (brk && R() < 0.55) struck(hz(s, walk("m", 0, 7)), t + b / 2, K, { gain: 0.12, pan: -0.2, drop: 0.01 });
+        if (n % 2 === 0) struck(hz(s, 0, -2), t, GONG, { gain: 0.16, pan: 0.2, beat: 1.2, drop: 0.02 });                // agung
+        if (n % 4 === 3) struck(hz(s, 4, -2), t + b / 2, GONG, { gain: 0.1, pan: 0.25, beat: 1.4, drop: 0.02 });
+        if (brk) { drum(180, t, { gain: 0.14, dec: 0.18, pan: 0.1 }); if (R() < 0.6) drum(240, t + b * 0.75, { gain: 0.08, dec: 0.1 }); }   // dabakan
+      },
+      bali(s, n, t, b, d, brk) {
+        const bal = state.bal || (state.bal = [2, 1, 3, 0, 4, 3, 1, 2]);
+        if (n % 2 === 0 || d > 0.9) struck(hz(s, bal[(n >> 1) % 8]), t, GAMELAN(1.6), { gain: 0.18, pan: -0.15, beat: 5 });   // saron with ombak beating
+        if (brk) { const k = bal[(n >> 1) % 8]; struck(hz(s, k + 5), t + b / 4, GAMELAN(0.5), { gain: 0.08, pan: -0.4, beat: 6 });
+                   struck(hz(s, k + 6), t + b * 3 / 4, GAMELAN(0.5), { gain: 0.08, pan: 0.4, beat: 6 }); }                   // kotekan
+        if (n % 4 === 3) struck(hz(s, 2, -1), t, GAMELAN(2.4), { gain: 0.14, pan: 0.2, beat: 3 });                              // kenong
+        if (n % 16 === 15) { struck(hz(s, 0, -3), t, GONG, { gain: 0.32, beat: 0.8, drop: 0.01 }); state.bal = bal.map(() => Math.floor(R() * 5)); } // gong ageng
+      },
+      ganges(s, n, t, b, d, brk) {
+        if (n % 2 === 0) { const seq = [hz(s, 4, 0), hz(s, 0, 1), hz(s, 0, 1), hz(s, 0, 0)];                                     // tanpura Pa Sa Sa Sa
+          pluck("tanpura", seq[(n >> 1) % 4], t, { gain: 0.14, pan: (n >> 1) % 2 ? 0.3 : -0.3, tone: 2500 }); }
+        if (R() < 0.42 * d + 0.12) { const p = walk("m", 7, 15), slide = R() < 0.35 ? hz(s, p + pick([-1, 1])) : 0;
+          pluck("sitar", hz(s, p), t, { gain: 0.24, pan: 0.1, slideTo: slide, slideAt: b * 0.4 }); }
+        if (brk) { const theka = [1, 0, 1, 1, 0, 1, 1, 0]; if (theka[(n * 2) % 8]) drum(hz(s, 0, 1), t, { gain: 0.12, dec: 0.35, bend: 1.08, noise: 0.05 });
+                   if (theka[(n * 2 + 1) % 8]) drum(hz(s, 0, 1) * 1.02, t + b / 2, { gain: 0.08, dec: 0.25, bend: 1.08, noise: 0.05 });
+                   if (n % 4 === 0) drum(85, t, { gain: 0.18, dec: 0.5, bend: 1.5, noise: 0 }); }                                 // bayan
+      },
+      cairo(s, n, t, b, d, brk) {
+        if (R() < 0.45 * d + 0.15) { const p = hz(s, walk("m", 5, 13));
+          pluck("oud", p, t, { gain: 0.3, pan: -0.1 }); if (R() < 0.2) for (let i = 1; i < 4; i++) pluck("oud", p, t + i * 0.08, { gain: 0.18, pan: -0.1 }); }
+        if (n % 4 === 0) pluck("oud", hz(s, 0, -1), t, { gain: 0.24, pan: 0.15 });
+        if (n % 16 === 8 && R() < 0.7) flute(hz(s, walk("f", 7, 11)), t, b * 4, { gain: 0.08, breath: 0.6, bend: 0.03, pan: 0.3, vib: 4.5 });  // ney
+        if (brk) { const M = ["D", "T", "-", "T", "D", "-", "T", "-"], h = M[(n * 2) % 8], h2 = M[(n * 2 + 1) % 8];                          // maqsum on riq
+          for (const [x, dt] of [[h, 0], [h2, b / 2]]) if (x === "D") drum(110, t + dt, { gain: 0.16, dec: 0.3 }); else if (x === "T") drum(420, t + dt, { gain: 0.07, dec: 0.08, noise: 0.25, tone: 5000 });
+        } else if (n % 4 === 0) drum(95, t, { gain: 0.1, dec: 0.5, noise: 0 });
+      },
+      silk(s, n, t, b, d, brk) {
+        pluck("dutar", hz(s, 0, -1), t, { gain: 0.14, pan: 0.2 });
+        if (n % 2 === 1) pluck("dutar", hz(s, 4, -1), t, { gain: 0.1, pan: 0.2 });
+        if (R() < 0.45 * d + 0.15) pluck("dutar", hz(s, walk("m", 4, 11)), t + (R() < 0.3 ? b / 2 : 0), { gain: 0.26, pan: -0.15 });
+        if (brk) { drum(90, t, { gain: 0.14, dec: 0.35, noise: 0.08 }); if (n % 2) drum(300, t + b / 2, { gain: 0.07, dec: 0.1, noise: 0.3, tone: 4500 }); }  // doira
+      },
+      sahel(s, n, t, b, d, brk) {
+        const chords = [[0, 2, 4], [3, 5, 7], [4, 6, 8], [0, 2, 4]], c = chords[Math.floor(n / 4) % 4];
+        const pat = [c[0] - 7, c[2], c[1] + 7, c[2]];
+        pluck("kora", hz(s, pat[0], 0), t, { gain: 0.24, pan: 0.2 });
+        if (d > 0.6 || n % 2 === 0) pluck("kora", hz(s, pat[1 + (n % 3)], 0), t + b / 2, { gain: 0.2, pan: -0.15 });
+        if (R() < 0.25 * d + 0.1) pluck("kora", hz(s, walk("m", 9, 15)), t + b / 4, { gain: 0.2, pan: -0.3 });
+        if (brk) { if (R() < 0.6) struck(hz(s, pick([7, 9, 11, 14]), 0), t + b / 2, WOOD, { gain: 0.16, pan: 0.35 });          // balafon
+                   shaker(t, 0.05, -0.3); shaker(t + b / 2, 0.035, -0.3); }
+      },
+      celtic(s, n, t, b, d, brk) {
+        const chords = [[0, 2, 4], [6, 8, 10], [3, 5, 7], [0, 2, 4]], c = chords[Math.floor(n / 4) % 4];
+        pluck("harp", hz(s, c[0], -1), t, { gain: 0.22, pan: 0.1 });
+        if (d > 0.6 || n % 2) pluck("harp", hz(s, c[1 + (n % 2)], 0), t + b / 2, { gain: 0.16, pan: -0.1 });
+        if (n % 8 === 2 && R() < 0.6 + 0.3 * d) { let at = t;
+          for (let i = 0; i < 3; i++) { const p = walk("f", 9, 15), len = b * pick([1, 1.5, 2]);
+            flute(hz(s, p), at, len, { gain: 0.07, bright: 0.45, breath: 0.2, pan: 0.25, vib: 5.5 }); at += len; } }   // tin whistle
+        if (brk && n % 2 === 0) drum(70, t, { gain: 0.12, dec: 0.45, noise: 0.06 });                                       // bodhrán
+      },
+      andes(s, n, t, b, d, brk) {
+        if (n % 2 === 0 && (d > 0.6 || n % 4 === 0)) { const c = [0, 2, 4, 5].map(i => hz(s, i + (Math.floor(n / 8) % 2 ? 1 : 0)));
+          c.forEach((f, i) => pluck("charango", f, t + i * 0.025, { gain: 0.11, pan: -0.25 })); }                          // charango rasgueo
+        if (n % 8 === 0 && R() < 0.75) { let at = t + b;
+          for (let i = 0; i < 4; i++) { const len = b * pick([1, 1.5, 2]); flute(hz(s, walk("f", 5, 11)), at, len, { gain: 0.11, breath: 0.55, pan: 0.2, vib: 4 }); at += len; } }  // zampoña
+        if (brk && n % 2 === 0) drum(65, t, { gain: 0.16, dec: 0.5, noise: 0.05 });                                         // bombo
+      },
+      steel(s, n, t, b, d, brk) {
+        if (R() < 0.45 * d + 0.2) { const p = hz(s, walk("m", 4, 12)); struck(p, t, PAN, { gain: 0.15, pan: -0.15 });
+          if (R() < 0.25) for (let i = 1; i < 4; i++) struck(p, t + i * b / 4, PAN, { gain: 0.08, pan: -0.15 }); }        // roll
+        if (n % 2 === 0) struck(hz(s, [0, 3, 4, 0][Math.floor(n / 4) % 4], -2), t, PAN, { gain: 0.16, pan: 0.2 });         // bass pan
+        if (brk) { shaker(t + b / 2, 0.05, 0.3); if (n % 4 === 3) shaker(t + b * 0.75, 0.035, 0.3); }
+      },
+      pacific(s, n, t, b, d, brk) {
+        const chords = [[0, 2, 4], [3, 5, 7], [4, 6, 8], [0, 2, 4]], c = chords[Math.floor(n / 4) % 4];
+        if (n % 2 === 0 || d > 0.6) [c[0] + 7, c[1], c[2], c[0] + 7].forEach((x, i) => pluck("uke", hz(s, x), t + i * 0.018, { gain: 0.1, pan: -0.2 }));
+        pluck("slack", hz(s, c[0], -1), t, { gain: 0.18, pan: 0.15 });
+        if (R() < 0.3 * d + 0.15) pluck("slack", hz(s, walk("m", 5, 12)), t + b / 2, { gain: 0.2, pan: 0.2, slideTo: R() < 0.3 ? hz(s, (state.m || 7) + 1) : 0, slideAt: 0.05 });
+        if (brk) shaker(t + b / 2, 0.04, -0.3);
+      }
+    };
+
+    function currentKey() {
+      if (st.station !== "auto") return st.station;
+      const dest = (flight && flight.plan.to) || (ticket && ticket.plan.to) || draft.to;
+      return stationForAirport(dest);
+    }
+    function schedule() {
+      if (!playing || !actx) return;
+      const key = currentKey();
+      if (key !== cur) { cur = key; state = {}; beat = 0; renderUI(); if (mode !== "hold") fadeTo(level(), 0.8); }
+      const s = STATIONS[cur], b = 60 / s.bpm, look = document.hidden ? 3 : 0.5, brk = mode === "break";
+      if (nextT < actx.currentTime) nextT = actx.currentTime + 0.05;
+      while (nextT < actx.currentTime + look) {
+        try { PLAY[cur](s, beat, nextT, b, brk ? 1 : 0.55, brk); } catch (e) {}
+        beat++; nextT += b;
+      }
+    }
+    function fadeTo(v, sec = 1.2) {
+      if (!bus) return;
+      const now = actx.currentTime; bus.gain.cancelScheduledValues(now);
+      bus.gain.setValueAtTime(Math.max(0.0001, bus.gain.value), now); bus.gain.exponentialRampToValueAtTime(Math.max(0.0001, v), now + sec);
+    }
+    // per-station trim so every style sits at a similar loudness
+    const TRIM = { kyoto: 1.6, stream: 1.5, kulintang: 1.05, bali: 1.6, ganges: 1.45, cairo: 1, silk: 1.05, sahel: 0.85, celtic: 0.8, andes: 1, steel: 0.95, pacific: 1 };
+    const level = () => (mode === "break" ? 1 : 0.8) * st.vol * 2.4 * (TRIM[cur || currentKey()] || 1);
+    function start() {
+      if (!setup()) return;
+      if (!playing) { playing = true; nextT = actx.currentTime + 0.1; clearInterval(timer); timer = setInterval(schedule, 120); schedule(); }
+      if (mode !== "hold") fadeTo(level());
+    }
+    function stop(sec = 1.2) {
+      if (!playing) return;
+      fadeTo(0.0001, sec);
+      setTimeout(() => { if (!st.on || mode === "hold") { playing = false; clearInterval(timer); } }, sec * 1000 + 100);
+    }
+    function renderUI() {
+      $("musicBtn").setAttribute("aria-pressed", String(st.on));
+      $("musicBtn").textContent = st.on ? "Pause music" : "Play music";
+      $("musicStation").value = st.station;
+      $("musicVol").value = Math.round(st.vol * 100);
+      const s = STATIONS[currentKey()];
+      $("nowPlaying").textContent = `${st.on ? (mode === "hold" ? "Paused while holding: " : "Now playing: ") : ""}${s.name} · ${s.instruments} (${s.place})`;
+    }
+    $("musicStation").innerHTML = `<option value="auto">Auto: match my destination</option>` +
+      Object.entries(STATIONS).map(([k, s]) => `<option value="${k}">${s.place}: ${s.instruments}</option>`).join("");
+    $("musicBtn").addEventListener("click", () => { st.on = !st.on; save(); if (st.on) start(); else stop(); renderUI(); });
+    $("musicStation").addEventListener("change", e => { st.station = e.target.value; save(); renderUI(); });
+    $("musicVol").addEventListener("input", e => { st.vol = e.target.value / 100; save(); if (playing && mode !== "hold") fadeTo(level(), 0.15); });
+    // browsers only allow sound after a tap or click: resume a saved "on" setting at the first one
+    document.addEventListener("pointerdown", () => { if (st.on && !playing) start(); }, { capture: true });
+    renderUI();
+    return {
+      setMode(m) {
+        if (m === mode) return;
+        mode = m;
+        if (!st.on) { renderUI(); return; }
+        if (m === "hold") fadeTo(0.0001, 1.5); else if (playing) fadeTo(level(), 2.5);
+        renderUI();
+      },
+      duck(sec = 3.5) { if (!playing || mode === "hold" || !bus) return; const now = actx.currentTime;
+        bus.gain.cancelScheduledValues(now); bus.gain.setValueAtTime(Math.max(0.0001, bus.gain.value), now);
+        bus.gain.exponentialRampToValueAtTime(Math.max(0.0001, level() * 0.25), now + 0.2);
+        bus.gain.setValueAtTime(Math.max(0.0001, level() * 0.25), now + sec); bus.gain.exponentialRampToValueAtTime(Math.max(0.0001, level()), now + sec + 1.5); },
+      refresh: renderUI,
+      startIfOn() { if (st.on) start(); }
+    };
+  })();
 
   // ---------- Pilot career: ranks, challenges, rankings ----------
   const STREAK_MIN = 25;   // minutes of study that count a day toward a streak

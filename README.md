@@ -33,6 +33,27 @@ The page is set in Times New Roman. Where that font isn't installed, it uses Tin
 
 The look is a twilight first-class cabin: an indigo-to-sunset sky, frosted-glass panels and champagne-gold details.
 
+## Background music
+
+The music bar under the header plays generative cabin music inspired by instruments from around the world. It's synthesised live in the browser, so nothing is downloaded and it never loops the same way twice.
+
+| Style | Instruments |
+|---|---|
+| Japan | koto & shakuhachi |
+| China | guzheng & dizi |
+| Philippines | kulintang, agung & dabakan |
+| Bali | gamelan, with gong cycles and interlocking kotekan |
+| India | sitar, tanpura & tabla |
+| Egypt & the Middle East | oud, ney & riq, in maqam Hijaz |
+| Central Asia | dutar & doira |
+| West Africa | kora & balafon |
+| Ireland & Scotland | harp, tin whistle & bodhrán |
+| Peru & Bolivia | pan flute, charango & bombo |
+| Trinidad & Tobago | steel pan |
+| Hawaii | ukulele & slack-key guitar |
+
+**Auto** picks the style that matches your destination. Study blocks are sparse and calm, breaks are fuller with percussion, and holding pauses the music. The music dips while a chime plays. Volume and the on/off setting are remembered.
+
 ## Chime volume
 
 The **Chime** control in the header sets how the study and break changes sound:
