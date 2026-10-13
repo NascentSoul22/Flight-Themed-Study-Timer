@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Study Flight Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a night-flight cockpit. Planner (form + boarding pass) before departure,
+   then a flight deck (seatbelt annunciator, countdown, nav display, schedule strip). */
+:root {
+  --sky: #0a1020;        /* page ground: night sky */
+  --panel: #111a2d;      /* instrument panel */
+  --panel-2: #172338;    /* raised bezel */
+  --line: #26344f;       /* hairlines, graticule */
+  --ink: #e6ecf7;        /* primary text */
+  --muted: #8b98b3;      /* captions */
+  --focus: #4fd6ec;      /* seatbelt ON: study (ND cyan) */
+  --break: #f4b740;      /* seatbelt OFF: break (amber caution) */
+  --route: #e25ad6;      /* FMS magenta route line */
+  --ok: #6ee38a;         /* landed */
+  --ocean: #0b1729;      /* nav display: sea */
+  --land: #1d2c3c;       /* nav display: land */
+  --coast: #4d6a8c;      /* coastlines */
+  --border: #3a5070;     /* country borders */
+  --grid: rgba(139, 152, 179, .14);
+  --warn: #ff6b5e;       /* divert */
+  --font-display: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --font-body: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --font-mono: "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --paper: #eef1f6;      /* printed ticket stock */
+  --paper-ink: #14213a;  /* ticket print */
+  --paper-line: #c3cbd8; /* ticket rules */
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-inline: 16px;
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: .02em; text-wrap: balance; margin: 0; }
+.label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Header */
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand h1 { font-size: 30px; text-transform: uppercase; }
+.brand .tag { color: var(--muted); font-size: 13px; }
+.hours { color: var(--muted); font-size: 13px; }
+.hours b { color: var(--ink); font-family: var(--font-mono); font-weight: 700; }
+
+/* Panels */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+
+/* Planner */
+.planner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+.form { display: grid; gap: 14px; }
+.row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field select, .field input {
+  width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px; font-family: var(--font-mono); font-size: 14px;
+}
+.field .hint { font-size: 12px; color: var(--muted); }
+.swap { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; cursor: pointer; }
+.swap:hover { border-color: var(--muted); }
+.dur { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dur .field input { text-align: right; }
+.reset { background: none; border: 0; color: var(--focus); padding: 0; cursor: pointer; font-size: 12px; text-decoration: underline; justify-self: start; }
+
+.btn {
+  border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px;
+  padding: 11px 16px; cursor: pointer; font-family: var(--font-display); font-weight: 700;
+  font-size: 17px; letter-spacing: .06em; text-transform: uppercase;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--focus); color: var(--sky); border-color: var(--focus); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--warn); }
+.btn.danger.armed { background: var(--warn); color: var(--sky); border-color: var(--warn); }
+
+/* Boarding pass */
+.pass { display: grid; gap: 16px; }
+.pass-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.pass-route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.pass-route .code { font-family: var(--font-display); font-size: 56px; line-height: 1; font-weight: 700; }
+.pass-route .city { color: var(--muted); font-size: 13px; }
+.pass-route .to { text-align: right; }
+.pass-route .mid { color: var(--route); text-align: center; font-family: var(--font-mono); font-size: 12px; }
+.pass-route .mid svg { display: block; margin: 0 auto 4px; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.facts .v { font-family: var(--font-mono); font-size: 16px; font-weight: 700; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+/* Schedule strip */
+.strip-wrap { display: grid; gap: 6px; }
+.strip { position: relative; display: flex; height: 26px; border-radius: 4px; overflow: hidden; background: var(--panel-2); }
+.strip .seg { height: 100%; border-right: 2px solid var(--panel); min-width: 2px; position: relative; }
+.strip .seg:last-child { border-right: 0; }
+.strip .seg.focus { background: color-mix(in srgb, var(--focus) 70%, var(--panel)); }
+.strip .seg.break { background: var(--break); }
+.strip .seg.done { opacity: .35; }
+.strip .seg span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--sky); font-weight: 700; overflow: hidden; white-space: nowrap; }
+.strip .cursor { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--sky); transform: translateX(-1px); }
+.strip-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+/* Flight deck */
+.annunciator {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border-radius: 10px; padding: 14px 18px; border: 1px solid var(--focus);
+  background: color-mix(in srgb, var(--focus) 12%, var(--panel));
+}
+.annunciator.break { border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, var(--panel)); }
+.annunciator.hold { border-color: var(--muted); background: var(--panel); }
+.sign { display: flex; align-items: center; gap: 14px; }
+.sign svg { flex: none; }
+.sign .what { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; }
+.sign .sub { color: var(--muted); font-size: 13px; }
+.annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 13px; text-align: right; }
+
+.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; }
+.timer { display: grid; gap: 16px; align-content: start; }
+.big { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 700; font-size: clamp(72px, 15vw, 128px); line-height: .9; letter-spacing: .01em; color: var(--focus); }
+.break-mode .big { color: var(--break); }
+.hold-mode .big { color: var(--muted); }
+.next { color: var(--muted); font-size: 14px; }
+.next b { color: var(--ink); font-weight: 700; }
+.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.inst { background: var(--panel-2); padding: 10px 12px; display: grid; gap: 2px; }
+.inst .v { font-family: var(--font-mono); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.inst .v small { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+.nd { position: relative; padding: 0; overflow: hidden; }
+.nd canvas { display: block; width: 100%; height: 100%; min-height: 340px; }
+.nd .nd-tag { position: absolute; left: 12px; top: 10px; z-index: 1; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Landed */
+.landed { display: grid; gap: 14px; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, var(--panel)); }
+.landed.diverted { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 8%, var(--panel)); }
+.landed h2 { font-size: 30px; }
+.landed p { margin: 0; max-width: 62ch; color: var(--muted); }
+.landed p b { color: var(--ink); }
+
+/* Ticket */
+.ticket-view { display: grid; gap: 14px; justify-items: center; }
+.ticket-view .lead { color: var(--muted); margin: 0; text-align: center; }
+.ticket {
+  width: 100%; max-width: 860px; display: grid; grid-template-columns: minmax(0, 1fr) 230px;
+  background: var(--paper); color: var(--paper-ink); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ticket.printing { animation: print 900ms cubic-bezier(.2, .8, .2, 1); }
+  @keyframes print { from { transform: translateY(-18px); clip-path: inset(0 0 70% 0); } to { transform: none; clip-path: inset(0 0 0 0); } }
+}
+.t-band { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  background: var(--paper-ink); color: var(--paper); padding: 10px 22px; }
+.t-band b { font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
+.t-band span { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.t-main { padding: 18px 22px 20px; display: grid; gap: 16px; min-width: 0; }
+.t-stub { padding: 18px 20px 20px; display: grid; gap: 12px; align-content: start; border-left: 2px dashed var(--paper-line); position: relative; min-width: 0; }
+.t-stub::before, .t-stub::after { content: ""; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky); }
+.t-stub::before { top: -10px; } .t-stub::after { bottom: -10px; }
+.t-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--paper-ink) 60%, var(--paper)); }
+.t-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.t-route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; }
+.t-route .code { font-size: 64px; line-height: .9; font-weight: 700; }
+.t-route .to { text-align: right; }
+.t-route .plane { font-size: 26px; color: var(--route); padding-bottom: 8px; }
+.t-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; border-top: 1px solid var(--paper-line); padding-top: 14px; }
+.t-note { font-style: italic; font-size: 14px; margin: 0; border-top: 1px solid var(--paper-line); padding-top: 12px; }
+.t-barcode { width: 100%; height: 56px; display: block; }
+.t-num { font-size: 12px; letter-spacing: .12em; text-align: center; }
+.ticket-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.autoboard { color: var(--muted); font-size: 14px; }
+.autoboard b { color: var(--ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) {
+  .ticket { grid-template-columns: 1fr; }
+  .t-stub { border-left: 0; border-top: 2px dashed var(--paper-line); }
+  .t-stub::before, .t-stub::after { top: -11px; bottom: auto; }
+  .t-stub::before { left: -10px; } .t-stub::after { left: auto; right: -10px; }
+  .t-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-route .code { font-size: 48px; }
+}
+
+/* Logbook */
+.logbook { display: grid; gap: 12px; }
+.logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.logbook h2 { font-size: 22px; text-transform: uppercase; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.num, th.num { text-align: right; }
+.pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; font-family: var(--font-body); }
+.pill.ok { color: var(--ok); }
+.pill.div { color: var(--warn); }
+.empty { color: var(--muted); font-size: 14px; margin: 0; }
+.clear { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; text-decoration: underline; }
+.clear.armed { color: var(--warn); }
+
+@media (max-width: 780px) {
+  .planner, .deck { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pass-route .code { font-size: 44px; }
+  .nd canvas { min-height: 260px; }
+}
+@media (max-width: 420px) {
+  .instruments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sign .what { font-size: 22px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .annunciator { transition: background .4s, border-color .4s; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Study Flight Deck</h1>
+      <span class="tag">Your flight time is your study time.</span>
+    </div>
+    <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
+  </header>
+
+  <!-- PLANNER -->
+  <section id="planner" class="planner">
+    <form class="panel form" id="planForm" autocomplete="off">
+      <h2 style="font-size:22px;text-transform:uppercase">File a flight plan</h2>
+      <div class="row">
+        <div class="field">
+          <label class="label" for="from">From</label>
+          <select id="from"></select>
+        </div>
+        <button type="button" class="swap" id="swap" aria-label="Swap origin and destination" title="Swap">⇄</button>
+        <div class="field">
+          <label class="label" for="to">To</label>
+          <select id="to"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="label">Block time (total session)</span>
+        <div class="dur">
+          <div class="field"><input id="durH" type="number" min="0" max="20" step="1" aria-label="Hours"><span class="hint">hours</span></div>
+          <div class="field"><input id="durM" type="number" min="0" max="59" step="5" aria-label="Minutes"><span class="hint">minutes</span></div>
+        </div>
+        <span class="hint" id="durHint">Calculated from the real great-circle distance.</span>
+        <button type="button" class="reset" id="durReset" hidden>Use the real flight time</button>
+      </div>
+
+      <div class="row2">
+        <div class="field" style="grid-column:1 / -1">
+          <label class="label" for="passenger">Passenger name</label>
+          <input id="passenger" type="text" maxlength="28" placeholder="Your name">
+        </div>
+        <div class="field">
+          <label class="label" for="focusMin">Study block (min)</label>
+          <input id="focusMin" type="number" min="5" max="240" step="5" value="50">
+        </div>
+        <div class="field">
+          <label class="label" for="breakMin">Break (min)</label>
+          <input id="breakMin" type="number" min="1" max="60" step="1" value="10">
+        </div>
+      </div>
+      <span class="hint" style="font-size:12px;color:var(--muted)">The seatbelt sign stays on while you study and switches off for each break. The last block runs until landing.</span>
+
+      <button type="submit" class="btn primary" id="depart">Print my ticket</button>
+    </form>
+
+    <article class="panel pass" aria-label="Flight plan summary">
+      <div class="pass-head">
+        <span class="label">Flight plan · Flight <span class="mono" id="pFlight">SF 000</span></span>
+        <span class="label mono" id="pDate"></span>
+      </div>
+      <div class="pass-route">
+        <div><div class="code" id="pFromCode">—</div><div class="city" id="pFromCity"></div></div>
+        <div class="mid">
+          <svg width="64" height="20" viewBox="0 0 64 20" aria-hidden="true"><path d="M2 16 Q32 -6 62 16" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/></svg>
+          <span id="pDist">—</span>
+        </div>
+        <div class="to"><div class="code" id="pToCode">—</div><div class="city" id="pToCity"></div></div>
+      </div>
+      <div class="facts">
+        <div><div class="label">Block time</div><div class="v" id="pBlock">—</div></div>
+        <div><div class="label">Study</div><div class="v" id="pStudy">—</div></div>
+        <div><div class="label">Breaks</div><div class="v" id="pBreaks">—</div></div>
+        <div><div class="label">Arrive</div><div class="v" id="pEta">—</div></div>
+      </div>
+      <div class="strip-wrap">
+        <div class="label">Seatbelt schedule</div>
+        <div class="strip" id="pStrip"></div>
+        <div class="strip-scale mono"><span>0:00</span><span id="pStripEnd"></span></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--focus)"></i>Seatbelt on: study</span>
+        <span><i style="background:var(--break)"></i>Seatbelt off: break</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- FLIGHT DECK -->
+  <section id="cockpit" hidden>
+    <div class="wrap" style="gap:20px">
+      <div class="annunciator" id="ann">
+        <div class="sign">
+          <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+            <rect x="1" y="1" width="38" height="38" rx="8" fill="none" stroke="currentColor" stroke-width="2" id="signFrame"/>
+            <circle cx="20" cy="11" r="3.5" fill="currentColor"/>
+            <path d="M13 31 V19 a7 7 0 0 1 14 0 V31" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <path id="signBelt" d="M10 24 H30" stroke="currentColor" stroke-width="3"/>
+          </svg>
+          <div>
+            <div class="what" id="annWhat">Fasten seatbelt</div>
+            <div class="sub" id="annSub">Study block 1 of 3</div>
+          </div>
+        </div>
+        <div class="flt"><div id="dFlight">SF 000</div><div id="dRoute">—</div></div>
+      </div>
+
+      <div class="deck">
+        <div class="panel timer" id="timerPanel">
+          <div class="label" id="segLabel">Time left in this study block</div>
+          <div class="big" id="segClock" aria-live="off">00:00</div>
+          <div class="next" id="nextUp"></div>
+          <div class="instruments">
+            <div class="inst"><span class="label">Phase</span><span class="v" id="iPhase" style="font-size:15px">—</span></div>
+            <div class="inst"><span class="label">Altitude</span><span class="v" id="iAlt">—</span></div>
+            <div class="inst"><span class="label">Ground spd</span><span class="v" id="iGs">—</span></div>
+            <div class="inst"><span class="label">Dist to go</span><span class="v" id="iDist">—</span></div>
+            <div class="inst"><span class="label">Time to go</span><span class="v" id="iTtg">—</span></div>
+            <div class="inst"><span class="label">ETA</span><span class="v" id="iEta">—</span></div>
+          </div>
+          <div class="controls">
+            <button type="button" class="btn" id="holdBtn">Enter holding</button>
+            <button type="button" class="btn" id="skipBtn">Skip to next</button>
+            <button type="button" class="btn danger" id="divertBtn">Divert</button>
+          </div>
+        </div>
+        <div class="panel nd">
+          <span class="label nd-tag">Nav display</span>
+          <canvas id="map" aria-label="Map of the route with the aircraft position"></canvas>
+        </div>
+      </div>
+
+      <div class="panel strip-wrap">
+        <div class="label">Seatbelt schedule</div>
+        <div class="strip" id="dStrip"></div>
+        <div class="strip-scale mono"><span id="dStripStart">0:00</span><span id="dStripEnd"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKET -->
+  <section id="ticketView" class="ticket-view" hidden>
+    <p class="lead">Your ticket is ready. Check the details, then board.</p>
+    <article class="ticket" id="ticket" aria-label="Flight ticket">
+      <div class="t-band"><b>Study Air</b><span>Electronic ticket · Boarding pass</span></div>
+      <div class="t-main">
+        <div class="t-route">
+          <div><div class="t-k">From</div><div class="code" id="tFromCode">HND</div><div id="tFromCity"></div></div>
+          <div class="plane" aria-hidden="true">✈</div>
+          <div class="to"><div class="t-k">To</div><div class="code" id="tToCode">ICN</div><div id="tToCity"></div></div>
+        </div>
+        <div class="t-grid">
+          <div><div class="t-k">Passenger</div><div class="t-v" id="tName"></div></div>
+          <div><div class="t-k">Flight</div><div class="t-v" id="tFlight"></div></div>
+          <div><div class="t-k">Date</div><div class="t-v" id="tDate"></div></div>
+          <div><div class="t-k">Class</div><div class="t-v">Study</div></div>
+          <div><div class="t-k">Departs</div><div class="t-v" id="tDep"></div></div>
+          <div><div class="t-k">Arrives</div><div class="t-v" id="tArr"></div></div>
+          <div><div class="t-k">Flight time</div><div class="t-v" id="tBlock"></div></div>
+          <div><div class="t-k">Distance</div><div class="t-v" id="tDist"></div></div>
+        </div>
+        <p class="t-note" id="tNote"></p>
+      </div>
+      <div class="t-stub">
+        <div class="t-grid" style="grid-template-columns:1fr 1fr;border:0;padding:0">
+          <div><div class="t-k">Gate</div><div class="t-v" id="tGate"></div></div>
+          <div><div class="t-k">Seat</div><div class="t-v" id="tSeat"></div></div>
+          <div><div class="t-k">Boarding</div><div class="t-v" id="tBoard"></div></div>
+          <div><div class="t-k">Group</div><div class="t-v" id="tGroup"></div></div>
+        </div>
+        <div><div class="t-k">Route</div><div class="t-v" id="tStubRoute"></div></div>
+        <svg class="t-barcode" id="tBarcode" viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="t-num" id="tNum"></div>
+      </div>
+    </article>
+    <div class="ticket-actions">
+      <button type="button" class="btn primary" id="boardBtn">Board &amp; depart</button>
+      <button type="button" class="btn" id="changeBtn">Change flight</button>
+      <span class="autoboard" id="autoBoard"></span>
+    </div>
+  </section>
+
+  <!-- LANDED -->
+  <section id="landed" class="panel landed" hidden>
+    <span class="label" id="lTag">Landed</span>
+    <h2 id="lTitle">Welcome to Seoul</h2>
+    <p id="lText"></p>
+    <div class="controls"><button type="button" class="btn primary" id="again">Plan the next flight</button></div>
+  </section>
+
+  <!-- LOGBOOK -->
+  <section class="panel logbook">
+    <div class="logbook-head">
+      <h2>Pilot logbook</h2>
+      <button type="button" class="clear" id="clearLog" hidden>Clear logbook</button>
+    </div>
+    <div class="table-scroll" id="logWrap"></div>
+  </section>
+
+</div>
+
+<script src="geo/world.js"></script>
+<script>
+(() => {
+  // ---------- Data ----------
+  const AIRPORTS = [
+    ["HND","Tokyo Haneda",35.5494,139.7798],["NRT","Tokyo Narita",35.7720,140.3929],["KIX","Osaka Kansai",34.4320,135.2304],
+    ["CTS","Sapporo",42.7752,141.6923],["OKA","Okinawa",26.1958,127.6459],["ICN","Seoul Incheon",37.4602,126.4407],
+    ["PEK","Beijing",40.0799,116.6031],["PVG","Shanghai",31.1443,121.8083],["HKG","Hong Kong",22.3080,113.9185],
+    ["TPE","Taipei",25.0797,121.2342],["MNL","Manila",14.5086,121.0194],["CRK","Clark",15.1860,120.5603],["LAO","Laoag",18.1781,120.5317],
+    ["CEB","Cebu",10.3075,123.9794],["TAG","Bohol Panglao",9.5664,123.7753],["ILO","Iloilo",10.8330,122.4934],
+    ["BCD","Bacolod",10.7764,123.0150],["MPH","Boracay Caticlan",11.9245,121.9540],["KLO","Kalibo",11.6794,122.3763],
+    ["PPS","Puerto Princesa",9.7421,118.7590],["TAC","Tacloban",11.2276,125.0278],["IAO","Siargao",9.8591,126.0140],
+    ["CGY","Cagayan de Oro",8.6122,124.4561],["DVO","Davao",7.1255,125.6458],["GES","General Santos",6.0580,125.0960],
+    ["ZAM","Zamboanga",6.9224,122.0596],["BKK","Bangkok",13.6900,100.7501],
+    ["SIN","Singapore",1.3644,103.9915],["KUL","Kuala Lumpur",2.7456,101.7072],["DEL","Delhi",28.5562,77.1000],
+    ["BOM","Mumbai",19.0896,72.8656],["DXB","Dubai",25.2532,55.3657],["DOH","Doha",25.2731,51.6081],
+    ["IST","Istanbul",41.2753,28.7519],["CAI","Cairo",30.1219,31.4056],["NBO","Nairobi",-1.3192,36.9278],
+    ["JNB","Johannesburg",-26.1392,28.2460],["LOS","Lagos",6.5774,3.3213],["LHR","London Heathrow",51.4700,-0.4543],
+    ["CDG","Paris",49.0097,2.5479],["AMS","Amsterdam",52.3105,4.7683],["FRA","Frankfurt",50.0379,8.5622],
+    ["MAD","Madrid",40.4983,-3.5676],["FCO","Rome",41.8003,12.2389],["JFK","New York JFK",40.6413,-73.7781],
+    ["ORD","Chicago",41.9742,-87.9073],["MIA","Miami",25.7959,-80.2870],["LAX","Los Angeles",33.9416,-118.4085],
+    ["SFO","San Francisco",37.6213,-122.3790],["SEA","Seattle",47.4502,-122.3088],["HNL","Honolulu",21.3187,-157.9225],
+    ["YYZ","Toronto",43.6777,-79.6248],["MEX","Mexico City",19.4361,-99.0719],["GRU","São Paulo",-23.4356,-46.4731],
+    ["SYD","Sydney",-33.9399,151.1753],["MEL","Melbourne",-37.6690,144.8410],["AKL","Auckland",-37.0082,174.7850]
+  ].map(([code, city, lat, lon]) => ({ code, city, lat, lon }));
+  const byCode = Object.fromEntries(AIRPORTS.map(a => [a.code, a]));
+
+  const CRUISE_KMH = 830;      // typical jet cruise ground speed
+  const TAXI_CLIMB_MIN = 30;   // taxi, climb and approach allowance
+  const CRUISE_FT = 37000;
+
+  // ---------- Helpers ----------
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const pad = n => String(n).padStart(2, "0");
+  const fmtHM = min => { min = Math.max(0, Math.round(min)); return `${Math.floor(min / 60)}h ${pad(min % 60)}m`; };
+  const fmtClock = ms => {
+    const s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+    return h ? `${h}:${pad(m)}:${pad(ss)}` : `${pad(m)}:${pad(ss)}`;
+  };
+  const fmtStrip = min => `${Math.floor(min / 60)}:${pad(Math.round(min % 60))}`;
+  const clockAt = ms => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+
+  // Great circle
+  const toVec = (lat, lon) => [Math.cos(rad(lat)) * Math.cos(rad(lon)), Math.cos(rad(lat)) * Math.sin(rad(lon)), Math.sin(rad(lat))];
+  function angDist(a, b) {
+    const A = toVec(a.lat, a.lon), B = toVec(b.lat, b.lon);
+    return Math.acos(Math.min(1, Math.max(-1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2])));
+  }
+  function gcPoint(a, b, f) {
+    const d = angDist(a, b);
+    if (d < 1e-9) return { lat: a.lat, lon: a.lon };
+    const A = toVec(a.lat, a.lon), B = toVec(b.lat, b.lon);
+    const k1 = Math.sin((1 - f) * d) / Math.sin(d), k2 = Math.sin(f * d) / Math.sin(d);
+    const x = k1 * A[0] + k2 * B[0], y = k1 * A[1] + k2 * B[1], z = k1 * A[2] + k2 * B[2];
+    return { lat: deg(Math.atan2(z, Math.hypot(x, y))), lon: deg(Math.atan2(y, x)) };
+  }
+  const distKm = (a, b) => angDist(a, b) * 6371;
+  const realBlockMin = (a, b) => Math.max(20, Math.round((distKm(a, b) / CRUISE_KMH * 60 + TAXI_CLIMB_MIN) / 5) * 5);
+
+  // Study/break schedule. The final study block absorbs any remainder too short for another break + block.
+  function buildSegments(total, F, B) {
+    const segs = []; let t = 0;
+    while (t < total - 1e-9) {
+      const rem = total - t;
+      let focus = Math.min(F, rem);
+      if (rem - focus < B + 10) focus = rem;
+      segs.push({ type: "focus", start: t, end: t + focus }); t += focus;
+      if (t >= total - 1e-9) break;
+      segs.push({ type: "break", start: t, end: t + B }); t += B;
+    }
+    return segs;
+  }
+
+  function flightNo() { return "SF " + (100 + Math.floor(Math.random() * 900)); }
+
+  // ---------- Audio: cabin chimes ----------
+  let actx = null;
+  function initAudio() {
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) { actx = null; }
+  }
+  function tone(freq, at, dur) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.25, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g).connect(actx.destination); o.start(at); o.stop(at + dur + 0.05);
+  }
+  function chime(kind) {
+    if (!actx) return;
+    try {
+      const t = actx.currentTime + 0.05;
+      if (kind === "break") { tone(1046, t, 1.2); }                         // single high ding: seatbelt off
+      else if (kind === "focus") { tone(659, t, 1.4); }                     // single low bong: seatbelt on
+      else { tone(784, t, 0.9); tone(988, t + 0.45, 0.9); tone(1318, t + 0.9, 1.6); } // landed
+    } catch (e) {}
+  }
+  function notify(title, body) {
+    try { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body }); } catch (e) {}
+  }
+
+  // ---------- Wake lock ----------
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch (e) {}
+  }
+  function releaseWake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+  // ---------- State ----------
+  let draft = store.get("sfd.draft", { from: "HND", to: "ICN", focusMin: 50, breakMin: 10, customMin: null, flightNo: flightNo() });
+  if (typeof draft.passenger !== "string") draft.passenger = "";
+  if (!byCode[draft.from]) draft.from = "HND";
+  if (!byCode[draft.to] || draft.to === draft.from) draft.to = draft.from === "ICN" ? "HND" : "ICN";
+  let flight = store.get("sfd.active", null);   // { plan, startedAt, pausedAt, pausedMs }
+  let logbook = store.get("sfd.logbook", []);
+  let lastSegIdx = -1;
+
+  function planFromDraft() {
+    const a = byCode[draft.from], b = byCode[draft.to];
+    const total = draft.customMin || realBlockMin(a, b);
+    const F = Math.max(5, +draft.focusMin || 50), B = Math.max(1, +draft.breakMin || 10);
+    return { from: a.code, to: b.code, distKm: distKm(a, b), totalMin: total, focusMin: F, breakMin: B,
+             flightNo: draft.flightNo, segments: buildSegments(total, F, B) };
+  }
+  const studyMin = segs => segs.filter(s => s.type === "focus").reduce((n, s) => n + s.end - s.start, 0);
+
+  // ---------- Planner ----------
+  const fromSel = $("from"), toSel = $("to");
+  for (const sel of [fromSel, toSel]) {
+    sel.innerHTML = AIRPORTS.map(a => `<option value="${a.code}">${a.code} · ${a.city}</option>`).join("");
+  }
+
+  function syncForm() {
+    fromSel.value = draft.from; toSel.value = draft.to;
+    $("focusMin").value = draft.focusMin; $("breakMin").value = draft.breakMin;
+    $("passenger").value = draft.passenger;
+    const total = draft.customMin || realBlockMin(byCode[draft.from], byCode[draft.to]);
+    $("durH").value = Math.floor(total / 60); $("durM").value = total % 60;
+    $("durReset").hidden = !draft.customMin;
+    $("durHint").textContent = draft.customMin
+      ? `Custom time. The real flight takes about ${fmtHM(realBlockMin(byCode[draft.from], byCode[draft.to]))}.`
+      : "Calculated from the real great-circle distance.";
+  }
+
+  function renderStrip(el, plan, elapsedMin) {
+    const T = plan.totalMin;
+    el.innerHTML = plan.segments.map(s => {
+      const w = (s.end - s.start) / T * 100, dur = Math.round(s.end - s.start);
+      const done = elapsedMin != null && s.end <= elapsedMin ? " done" : "";
+      const txt = w > 7 ? `<span>${dur}m</span>` : "";
+      return `<div class="seg ${s.type}${done}" style="width:${w}%" title="${s.type === "focus" ? "Study" : "Break"} ${dur} min">${txt}</div>`;
+    }).join("") + (elapsedMin != null ? `<div class="cursor" style="left:${Math.min(100, elapsedMin / T * 100)}%"></div>` : "");
+  }
+
+  function renderPass() {
+    const p = planFromDraft(), a = byCode[p.from], b = byCode[p.to];
+    $("pFlight").textContent = p.flightNo;
+    $("pDate").textContent = new Date().toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+    $("pFromCode").textContent = a.code; $("pFromCity").textContent = a.city;
+    $("pToCode").textContent = b.code; $("pToCity").textContent = b.city;
+    $("pDist").textContent = `${Math.round(p.distKm / 1.852).toLocaleString()} nm`;
+    $("pBlock").textContent = fmtHM(p.totalMin);
+    $("pStudy").textContent = fmtHM(studyMin(p.segments));
+    const nb = p.segments.filter(s => s.type === "break").length;
+    $("pBreaks").textContent = nb ? `${nb} × ${p.breakMin}m` : "None";
+    $("pEta").textContent = clockAt(Date.now() + p.totalMin * 60000);
+    renderStrip($("pStrip"), p, null);
+    $("pStripEnd").textContent = fmtStrip(p.totalMin);
+  }
+
+  function saveDraft() { store.set("sfd.draft", draft); syncForm(); renderPass(); }
+
+  fromSel.addEventListener("change", () => {
+    draft.from = fromSel.value;
+    if (draft.to === draft.from) draft.to = AIRPORTS.find(a => a.code !== draft.from).code;
+    draft.customMin = null; saveDraft();
+  });
+  toSel.addEventListener("change", () => {
+    draft.to = toSel.value;
+    if (draft.to === draft.from) draft.from = AIRPORTS.find(a => a.code !== draft.to).code;
+    draft.customMin = null; saveDraft();
+  });
+  $("swap").addEventListener("click", () => { [draft.from, draft.to] = [draft.to, draft.from]; saveDraft(); });
+  function onDur() {
+    const h = Math.max(0, Math.min(20, parseInt($("durH").value, 10) || 0));
+    const m = Math.max(0, Math.min(59, parseInt($("durM").value, 10) || 0));
+    const total = Math.max(5, h * 60 + m);
+    draft.customMin = total === realBlockMin(byCode[draft.from], byCode[draft.to]) ? null : total;
+    saveDraft();
+  }
+  $("durH").addEventListener("change", onDur); $("durM").addEventListener("change", onDur);
+  $("durReset").addEventListener("click", () => { draft.customMin = null; saveDraft(); });
+  $("passenger").addEventListener("input", e => { draft.passenger = e.target.value; store.set("sfd.draft", draft); });
+  $("focusMin").addEventListener("change", e => { draft.focusMin = Math.max(5, Math.min(240, parseInt(e.target.value, 10) || 50)); saveDraft(); });
+  $("breakMin").addEventListener("change", e => { draft.breakMin = Math.max(1, Math.min(60, parseInt(e.target.value, 10) || 10)); saveDraft(); });
+
+  $("planForm").addEventListener("submit", e => {
+    e.preventDefault();
+    initAudio();
+    try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {}); } catch (err) {}
+    issueTicket();
+  });
+
+  // ---------- Automated ticket ----------
+  const AUTO_BOARD_S = 30;
+  let ticket = null, boardTimer = null;
+  const rnd = n => Math.floor(Math.random() * n);
+
+  function issueTicket() {
+    const plan = planFromDraft();
+    ticket = {
+      plan,
+      passenger: (draft.passenger || "").trim() || "Student",
+      gate: "ABCDE"[rnd(5)] + (1 + rnd(48)),
+      seat: (3 + rnd(38)) + "ABCDEF"[rnd(6)],
+      group: 1 + rnd(4),
+      number: "742 " + String(1e9 + rnd(9e9)).slice(0, 10).replace(/(\d{4})(\d{6})/, "$1 $2"),
+      boardBy: Date.now() + AUTO_BOARD_S * 1000
+    };
+    renderTicket();
+    showView();
+    const t = $("ticket"); t.classList.remove("printing"); void t.offsetWidth; t.classList.add("printing");
+    clearInterval(boardTimer);
+    boardTimer = setInterval(updateAutoBoard, 250);
+    updateAutoBoard();
+    $("boardBtn").focus();
+  }
+
+  function barcode(seed) {
+    let x = 0, out = "", h = 0;
+    for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    while (x < 196) {
+      h = (h * 1103515245 + 12345) >>> 0;
+      const w = 1 + (h >>> 16) % 3, gap = 1 + (h >>> 20) % 2;
+      out += `<rect x="${x + 2}" y="0" width="${w}" height="56" fill="currentColor"/>`;
+      x += w + gap;
+    }
+    return out;
+  }
+
+  function renderTicket() {
+    const tk = ticket, p = tk.plan, a = byCode[p.from], b = byCode[p.to];
+    const dep = tk.boardBy, arr = dep + p.totalMin * 60000;
+    const nb = p.segments.filter(s => s.type === "break").length, nf = p.segments.length - nb;
+    $("tFromCode").textContent = a.code; $("tFromCity").textContent = a.city;
+    $("tToCode").textContent = b.code; $("tToCity").textContent = b.city;
+    $("tName").textContent = tk.passenger.toUpperCase();
+    $("tFlight").textContent = p.flightNo;
+    $("tDate").textContent = new Date(dep).toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" });
+    $("tDep").textContent = clockAt(dep);
+    $("tArr").textContent = clockAt(arr);
+    $("tBlock").textContent = fmtHM(p.totalMin);
+    $("tDist").textContent = `${Math.round(p.distKm / 1.852).toLocaleString()} nm`;
+    $("tNote").textContent = `Itinerary: ${nf} study block${nf > 1 ? "s" : ""} of up to ${p.focusMin} min` +
+      (nb ? ` with ${nb} break${nb > 1 ? "s" : ""} of ${p.breakMin} min` : ", no breaks") +
+      `, ${fmtHM(studyMin(p.segments))} of study in total.`;
+    $("tGate").textContent = tk.gate; $("tSeat").textContent = tk.seat;
+    $("tBoard").textContent = clockAt(Date.now()); $("tGroup").textContent = tk.group;
+    $("tStubRoute").textContent = `${a.code} → ${b.code}`;
+    $("tBarcode").innerHTML = barcode(tk.number + p.flightNo);
+    $("tNum").textContent = tk.number;
+  }
+
+  function updateAutoBoard() {
+    if (!ticket) { clearInterval(boardTimer); return; }
+    const left = Math.ceil((ticket.boardBy - Date.now()) / 1000);
+    if (left <= 0) { board(); return; }
+    $("autoBoard").innerHTML = `Boarding automatically in <b>${left}s</b>`;
+  }
+
+  function board() {
+    if (!ticket) return;
+    clearInterval(boardTimer);
+    initAudio();
+    flight = { plan: ticket.plan, seat: ticket.seat, startedAt: Date.now(), pausedAt: null, pausedMs: 0 };
+    store.set("sfd.active", flight);
+    ticket = null;
+    draft.flightNo = flightNo(); store.set("sfd.draft", draft);
+    lastSegIdx = -1;
+    chime("focus");
+    keepAwake();
+    showView();
+  }
+  $("boardBtn").addEventListener("click", board);
+  $("changeBtn").addEventListener("click", () => { clearInterval(boardTimer); ticket = null; showView(); });
+
+  // ---------- Flight deck ----------
+  function elapsedMs(now = Date.now()) {
+    if (!flight) return 0;
+    const pausedNow = flight.pausedAt ? now - flight.pausedAt : 0;
+    return Math.max(0, now - flight.startedAt - flight.pausedMs - pausedNow);
+  }
+  function segIndexAt(plan, min) {
+    const i = plan.segments.findIndex(s => min < s.end);
+    return i === -1 ? plan.segments.length - 1 : i;
+  }
+  function focusDoneMin(plan, min) {
+    return plan.segments.filter(s => s.type === "focus").reduce((n, s) => n + Math.max(0, Math.min(min, s.end) - s.start), 0);
+  }
+  function phaseAt(f, totalMin) {
+    const climb = Math.min(0.15, 25 / totalMin), desc = Math.min(0.15, 30 / totalMin);
+    if (f < 0.01) return ["Takeoff", 0];
+    if (f < climb) return ["Climb", CRUISE_FT * f / climb];
+    if (f > 1 - 0.01) return ["Landing", 0];
+    if (f > 1 - desc) return ["Descent", CRUISE_FT * (1 - f) / desc];
+    return ["Cruise", CRUISE_FT];
+  }
+
+  $("holdBtn").addEventListener("click", () => {
+    if (!flight) return;
+    initAudio();
+    if (flight.pausedAt) { flight.pausedMs += Date.now() - flight.pausedAt; flight.pausedAt = null; keepAwake(); }
+    else flight.pausedAt = Date.now();
+    store.set("sfd.active", flight); tick();
+  });
+  $("skipBtn").addEventListener("click", () => {
+    if (!flight) return;
+    initAudio();
+    const el = elapsedMs() / 60000, seg = flight.plan.segments[segIndexAt(flight.plan, el)];
+    flight.startedAt -= (seg.end - el) * 60000;   // jump forward to the segment boundary
+    store.set("sfd.active", flight); tick();
+  });
+  let divertTimer = null;
+  $("divertBtn").addEventListener("click", () => {
+    const btn = $("divertBtn");
+    if (!btn.classList.contains("armed")) {
+      btn.classList.add("armed"); btn.textContent = "Confirm divert";
+      clearTimeout(divertTimer);
+      divertTimer = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = "Divert"; }, 4000);
+      return;
+    }
+    clearTimeout(divertTimer); btn.classList.remove("armed"); btn.textContent = "Divert";
+    finish(true);
+  });
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" && flight && !e.target.closest("input,select,button,textarea")) { e.preventDefault(); $("holdBtn").click(); }
+  });
+
+  function finish(diverted) {
+    const plan = flight.plan, el = Math.min(plan.totalMin, elapsedMs() / 60000);
+    const study = focusDoneMin(plan, el);
+    const entry = { date: Date.now(), flightNo: plan.flightNo, from: plan.from, to: plan.to,
+                    blockMin: Math.round(el), studyMin: Math.round(study), diverted };
+    logbook.unshift(entry); store.set("sfd.logbook", logbook);
+    lastLanding = entry;
+    flight = null; store.set("sfd.active", null);
+    releaseWake();
+    if (!diverted) { chime("land"); notify("Landed", `Welcome to ${byCode[plan.to].city}. ${fmtHM(study)} of study logged.`); }
+    showView();
+  }
+
+  let lastLanding = null;
+
+  function tick() {
+    if (!flight) return;
+    const plan = flight.plan, now = Date.now(), elMs = elapsedMs(now), el = elMs / 60000;
+    if (el >= plan.totalMin) { finish(false); return; }
+    const idx = segIndexAt(plan, el), seg = plan.segments[idx];
+    const isBreak = seg.type === "break", held = !!flight.pausedAt;
+
+    if (lastSegIdx !== -1 && idx !== lastSegIdx) {
+      chime(seg.type);
+      notify(isBreak ? "Seatbelt sign off" : "Fasten seatbelt",
+             isBreak ? `Break for ${Math.round(seg.end - seg.start)} minutes.` : `Study block for ${Math.round(seg.end - seg.start)} minutes.`);
+    }
+    lastSegIdx = idx;
+
+    const focusSegs = plan.segments.filter(s => s.type === "focus");
+    const fNum = focusSegs.indexOf(seg) + 1;
+    const breaks = plan.segments.filter(s => s.type === "break");
+    const bNum = breaks.indexOf(seg) + 1;
+
+    const ann = $("ann");
+    ann.className = "annunciator" + (held ? " hold" : isBreak ? " break" : "");
+    ann.style.color = held ? "var(--muted)" : isBreak ? "var(--break)" : "var(--focus)";
+    $("signBelt").style.display = isBreak ? "none" : "";
+    $("annWhat").textContent = held ? "Holding" : isBreak ? "Seatbelt off: take a break" : "Fasten seatbelt: study";
+    $("annWhat").style.color = "var(--ink)";
+    $("annSub").textContent = held ? "Timer paused. Resume when you are ready."
+      : isBreak ? `Break ${bNum} of ${breaks.length}. Stand up, stretch, drink some water.`
+      : `Study block ${fNum} of ${focusSegs.length}. Phones in airplane mode.`;
+
+    const tp = $("timerPanel");
+    tp.classList.toggle("break-mode", isBreak && !held);
+    tp.classList.toggle("hold-mode", held);
+    $("segLabel").textContent = isBreak ? "Break time left" : "Time left in this study block";
+    const segLeft = (seg.end - el) * 60000;
+    $("segClock").textContent = fmtClock(segLeft);
+    const nxt = plan.segments[idx + 1];
+    $("nextUp").innerHTML = nxt
+      ? `Next: <b>${nxt.type === "break" ? `${Math.round(nxt.end - nxt.start)} min break` : `${Math.round(nxt.end - nxt.start)} min study block`}</b> at ${clockAt(now + segLeft)}`
+      : `Next: <b>landing in ${byCode[plan.to].city}</b> at ${clockAt(now + segLeft)}`;
+
+    const f = el / plan.totalMin, [phase, alt] = phaseAt(f, plan.totalMin);
+    const ttgMs = (plan.totalMin - el) * 60000;
+    $("iPhase").textContent = held ? "Holding" : phase;
+    $("iAlt").innerHTML = alt > 0 ? `${Math.round(alt / 100) * 100 >= 18000 ? "FL" + Math.round(alt / 1000) * 10 : Math.round(alt / 100) * 100 + "<small>ft</small>"}` : "GND";
+    $("iGs").innerHTML = `${phase === "Cruise" && !held ? Math.round(CRUISE_KMH / 1.852) : Math.round(CRUISE_KMH / 1.852 * (alt / CRUISE_FT) * 0.7 + 140)}<small>kt</small>`;
+    $("iDist").innerHTML = `${Math.round(plan.distKm / 1.852 * (1 - f)).toLocaleString()}<small>nm</small>`;
+    $("iTtg").textContent = fmtClock(ttgMs);
+    $("iEta").textContent = held ? "--:--" : clockAt(now + ttgMs);
+    $("holdBtn").textContent = held ? "Resume flight" : "Enter holding";
+
+    renderStrip($("dStrip"), plan, el);
+    $("dStripStart").textContent = `${fmtStrip(el)} flown`;
+    $("dStripEnd").textContent = fmtStrip(plan.totalMin);
+
+    document.title = `${fmtClock(segLeft)} ${held ? "Holding" : isBreak ? "Break" : "Study"} · ${plan.from}→${plan.to}`;
+    drawMap(plan, f);
+  }
+
+  // ---------- Nav display (canvas) ----------
+  // Real coastlines and borders from geo/world.js (Natural Earth 1:50m), drawn on a
+  // cos(lat)-scaled equirectangular projection fitted to the route.
+  const canvas = $("map"), ctx = canvas.getContext("2d");
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  let world = null;   // decoded once: { arcs: Float64Array[] (lon,lat pairs), kind: string, polys: [{ rings, box }] }
+  function loadWorld() {
+    if (world || !window.WORLD) return world;
+    const W = window.WORLD, [sx, sy] = W.s, [tx, ty] = W.t;
+    const arcs = W.a.map(q => {
+      const out = new Float64Array(q.length); let x = 0, y = 0;
+      for (let i = 0; i < q.length; i += 2) { x += q[i]; y += q[i + 1]; out[i] = x * sx + tx; out[i + 1] = y * sy + ty; }
+      return out;
+    });
+    const polys = W.p.map(rings => {
+      const box = [180, 90, -180, -90];
+      const pts = rings.map(ring => {
+        const r = [];
+        ring.forEach((ai, j) => {
+          const arc = arcs[ai < 0 ? ~ai : ai], n = arc.length / 2;
+          for (let m = j ? 1 : 0; m < n; m++) {
+            const i = ai < 0 ? n - 1 - m : m, lat = arc[i * 2 + 1];
+            let lon = arc[i * 2];
+            if (r.length) { const d = lon - r[r.length - 2]; if (d > 180) lon -= 360; else if (d < -180) lon += 360; }  // keep rings continuous across ±180°
+            r.push(lon, lat);
+            if (lon < box[0]) box[0] = lon; if (lat < box[1]) box[1] = lat;
+            if (lon > box[2]) box[2] = lon; if (lat > box[3]) box[3] = lat;
+          }
+        });
+        return r;
+      });
+      return { rings: pts, box };
+    });
+    const boxes = arcs.map(a => {
+      const b = [180, 90, -180, -90];
+      for (let i = 0; i < a.length; i += 2) { b[0] = Math.min(b[0], a[i]); b[1] = Math.min(b[1], a[i + 1]); b[2] = Math.max(b[2], a[i]); b[3] = Math.max(b[3], a[i + 1]); }
+      return b;
+    });
+    world = { arcs, boxes, kind: W.k, polys };
+    return world;
+  }
+
+  function mapView(plan, W, H) {
+    const a = byCode[plan.from], b = byCode[plan.to], N = 160, pts = [];
+    let prevLon = null, shift = 0;
+    for (let i = 0; i <= N; i++) {
+      const p = gcPoint(a, b, i / N);
+      if (prevLon != null) { const d = p.lon + shift - prevLon; if (d > 180) shift -= 360; else if (d < -180) shift += 360; }
+      const lon = p.lon + shift; prevLon = lon; pts.push({ lat: p.lat, lon });
+    }
+    const lats = pts.map(p => p.lat), lons = pts.map(p => p.lon);
+    let minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+    const span = Math.max(maxLat - minLat, maxLon - minLon, 6), padD = span * 0.25;
+    minLat = Math.max(-85, minLat - padD); maxLat = Math.min(85, maxLat + padD); minLon -= padD; maxLon += padD;
+    const k = Math.cos(rad((minLat + maxLat) / 2)), margin = 24;
+    const s = Math.min((W - margin * 2) / ((maxLon - minLon) * k), (H - margin * 2 - 20) / (maxLat - minLat));
+    const ox = W / 2 - ((minLon + maxLon) / 2) * k * s, oy = H / 2 + 10 + ((minLat + maxLat) / 2) * s;
+    return { a, b, N, pts, k, s, ox, oy, span, P: p => [ox + p.lon * k * s, oy - p.lat * s],
+             lon0: -ox / (k * s), lon1: (W - ox) / (k * s), lat1: oy / s, lat0: (oy - H) / s };
+  }
+
+  // Static layer (ocean, land, borders, graticule, airports), cached per size and route.
+  let base = null, baseKey = "";
+  function drawBase(v, W, H, dpr, C) {
+    const key = `${W}x${H}@${dpr}:${v.a.code}-${v.b.code}:${!!window.WORLD}`;
+    if (key === baseKey) return base;
+    base = base || document.createElement("canvas");
+    base.width = Math.round(W * dpr); base.height = Math.round(H * dpr);
+    const g = base.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = C.ocean; g.fillRect(0, 0, W, H);
+
+    const w = loadWorld(), X = lon => v.ox + lon * v.k * v.s, Y = lat => v.oy - lat * v.s;
+    if (w) {
+      for (const off of [-360, 0, 360]) {
+        if (v.lon1 < -180 + off || v.lon0 > 180 + off) continue;
+        const vis = b => !(b[2] + off < v.lon0 || b[0] + off > v.lon1 || b[3] < v.lat0 || b[1] > v.lat1);
+        // land
+        g.fillStyle = C.land; g.beginPath();
+        for (const poly of w.polys) {
+          if (!vis(poly.box)) continue;
+          for (const r of poly.rings) {
+            g.moveTo(X(r[0] + off), Y(r[1]));
+            for (let i = 2; i < r.length; i += 2) g.lineTo(X(r[i] + off), Y(r[i + 1]));
+            g.closePath();
+          }
+        }
+        g.fill("evenodd");
+        // coastlines (kind 1) and country borders (kind 2); skip the artificial cut along ±180°
+        for (const kind of ["2", "1"]) {
+          g.beginPath();
+          w.arcs.forEach((arc, ai) => {
+            if (w.kind[ai] !== kind || !vis(w.boxes[ai])) return;
+            for (let i = 0; i < arc.length; i += 2) {
+              const lon = arc[i], prev = arc[i - 2];
+              const cut = i && ((Math.abs(lon) > 179.99 && Math.abs(prev) > 179.99) || Math.abs(lon - prev) > 90);
+              if (!i || cut) g.moveTo(X(lon + off), Y(arc[i + 1])); else g.lineTo(X(lon + off), Y(arc[i + 1]));
+            }
+          });
+          if (kind === "2") { g.strokeStyle = C.border; g.lineWidth = 0.8; g.setLineDash([3, 3]); }
+          else { g.strokeStyle = C.coast; g.lineWidth = 1; g.setLineDash([]); }
+          g.stroke();
+        }
+        g.setLineDash([]);
+      }
+    }
+
+    // graticule
+    const step = v.span > 60 ? 20 : v.span > 25 ? 10 : 5;
+    g.strokeStyle = C.grid; g.lineWidth = 1; g.fillStyle = C.muted; g.font = `10px ${css("--font-mono")}`;
+    for (let L = Math.ceil(v.lon0 / step) * step; L <= v.lon1; L += step) {
+      const x = X(L); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
+      const lw = ((L % 360) + 540) % 360 - 180; g.fillText(`${Math.abs(lw)}°${lw < 0 ? "W" : lw > 0 ? "E" : ""}`, x + 3, H - 6);
+    }
+    for (let L = Math.ceil(v.lat0 / step) * step; L <= v.lat1; L += step) {
+      const y = Y(L); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+      g.fillText(`${Math.abs(L)}°${L < 0 ? "S" : L > 0 ? "N" : ""}`, W - 34, y - 3);
+    }
+
+    // other airports in view, for orientation
+    g.font = `10px ${css("--font-mono")}`;
+    const taken = [[X(v.pts[0].lon), Y(v.pts[0].lat)], [X(v.pts[v.N].lon), Y(v.pts[v.N].lat)]];
+    for (const ap of AIRPORTS) {
+      if (ap === v.a || ap === v.b) continue;
+      for (const off of [-360, 0, 360]) {
+        const x = X(ap.lon + off), y = Y(ap.lat);
+        if (x < 8 || x > W - 64 || y < 24 || y > H - 20) continue;
+        if (taken.some(([tx, ty]) => Math.abs(tx - x) < 34 && Math.abs(ty - y) < 14)) continue;
+        taken.push([x, y]);
+        g.fillStyle = C.muted; g.beginPath(); g.arc(x, y, 2, 0, Math.PI * 2); g.fill();
+        g.fillText(ap.code, x + 5, y + 3);
+      }
+    }
+
+    // scale bar in nautical miles (1° of latitude = 60 nm)
+    const pxPerNm = v.s / 60, target = 90 / pxPerNm, mag = Math.pow(10, Math.floor(Math.log10(target)));
+    const nm = [1, 2, 5, 10].map(m => m * mag).reverse().find(n => n <= target) || mag, len = nm * pxPerNm;
+    const sx0 = 14, sy0 = H - 24;
+    g.strokeStyle = C.ink; g.lineWidth = 1.5; g.beginPath();
+    g.moveTo(sx0, sy0 - 4); g.lineTo(sx0, sy0); g.lineTo(sx0 + len, sy0); g.lineTo(sx0 + len, sy0 - 4); g.stroke();
+    g.fillStyle = C.ink; g.fillText(`${nm.toLocaleString()} nm`, sx0 + len + 6, sy0 + 3);
+
+    baseKey = key;
+    return base;
+  }
+
+  function drawMap(plan, f) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    const dpr = window.devicePixelRatio || 1, W = rect.width, H = rect.height;
+    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    }
+    const C = { ink: css("--ink"), muted: css("--muted"), route: css("--route"), focus: css("--focus"), brk: css("--break"),
+                ocean: css("--ocean"), land: css("--land"), coast: css("--coast"), border: css("--border"), grid: css("--grid") };
+    const v = mapView(plan, W, H), { pts, N, P } = v;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(drawBase(v, W, H, dpr, C), 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // route: flown (solid) and remaining (dashed magenta)
+    const cut = Math.round(f * N);
+    ctx.lineWidth = 2.5; ctx.lineCap = "round";
+    ctx.setLineDash([7, 6]); ctx.strokeStyle = C.route; ctx.beginPath();
+    pts.slice(cut).forEach((p, i) => { const [x, y] = P(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+    ctx.setLineDash([]); ctx.strokeStyle = C.ink; ctx.beginPath();
+    pts.slice(0, cut + 1).forEach((p, i) => { const [x, y] = P(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+
+    // break waypoints along the route
+    plan.segments.filter(sg => sg.type === "break").forEach(sg => {
+      const [x, y] = P(pts[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)]);
+      ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    });
+
+    // origin and destination
+    ctx.font = `700 13px ${css("--font-mono")}`;
+    [[pts[0], v.a.code], [pts[N], v.b.code]].forEach(([p, code]) => {
+      const [x, y] = P(p);
+      ctx.fillStyle = C.ocean; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = C.focus; ctx.lineWidth = 2; ctx.stroke();
+      ctx.lineWidth = 3; ctx.strokeStyle = C.ocean; ctx.strokeText(code, x + 10, y - 8);
+      ctx.fillStyle = C.ink; ctx.fillText(code, x + 10, y - 8);
+    });
+
+    // aircraft
+    const fi = Math.min(N, f * N), i0 = Math.floor(fi), i1 = Math.min(N, i0 + 1), t = fi - i0;
+    const pa = P(pts[i0]), pb = P(pts[i1]);
+    const x = pa[0] + (pb[0] - pa[0]) * t, y = pa[1] + (pb[1] - pa[1]) * t;
+    const h0 = P(pts[Math.min(N - 1, i0)]), h1 = P(pts[Math.min(N, i0 + 1)]);
+    const ang = Math.atan2(h1[1] - h0[1], h1[0] - h0[0]);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = C.brk; ctx.strokeStyle = C.ocean; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(12, 0); ctx.lineTo(4, 2); ctx.lineTo(-1, 10); ctx.lineTo(-4, 10); ctx.lineTo(-1, 2); ctx.lineTo(-8, 2);
+    ctx.lineTo(-11, 6); ctx.lineTo(-13, 6); ctx.lineTo(-11, 0); ctx.lineTo(-13, -6); ctx.lineTo(-11, -6); ctx.lineTo(-8, -2);
+    ctx.lineTo(-1, -2); ctx.lineTo(-4, -10); ctx.lineTo(-1, -10); ctx.lineTo(4, -2); ctx.closePath();
+    ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+
+  // ---------- Landed + logbook ----------
+  function renderLanded() {
+    const e = lastLanding, el = $("landed");
+    el.hidden = !e;
+    if (!e) return;
+    el.classList.toggle("diverted", e.diverted);
+    $("lTag").textContent = e.diverted ? `Diverted · ${e.flightNo}` : `Landed · ${e.flightNo}`;
+    $("lTitle").textContent = e.diverted ? "Flight diverted" : `Welcome to ${byCode[e.to].city}`;
+    $("lText").innerHTML = e.diverted
+      ? `You ended ${e.from}→${e.to} early after ${fmtHM(e.blockMin)}. <b>${fmtHM(e.studyMin)}</b> of study still goes in your logbook.`
+      : `You flew ${e.from}→${e.to} in ${fmtHM(e.blockMin)} and studied for <b>${fmtHM(e.studyMin)}</b>. Stretch your legs before the next departure.`;
+  }
+
+  function renderLog() {
+    const total = logbook.reduce((n, e) => n + e.studyMin, 0);
+    $("totalHours").textContent = fmtHM(total);
+    $("clearLog").hidden = !logbook.length;
+    if (!logbook.length) {
+      $("logWrap").innerHTML = `<p class="empty">No flights yet. Each flight you complete or divert is logged here with the study time you put in.</p>`;
+      return;
+    }
+    $("logWrap").innerHTML = `<table><thead><tr><th>Date</th><th>Flight</th><th>Route</th><th class="num">Block</th><th class="num">Study</th><th>Status</th></tr></thead><tbody>${
+      logbook.slice(0, 50).map(e => `<tr><td>${new Date(e.date).toLocaleDateString([], { day: "2-digit", month: "short" })} ${clockAt(e.date)}</td><td>${e.flightNo}</td><td>${e.from}→${e.to}</td><td class="num">${fmtHM(e.blockMin)}</td><td class="num">${fmtHM(e.studyMin)}</td><td>${e.diverted ? '<span class="pill div">Diverted</span>' : '<span class="pill ok">Landed</span>'}</td></tr>`).join("")
+    }</tbody></table>`;
+  }
+  let clearArmed = null;
+  $("clearLog").addEventListener("click", () => {
+    const btn = $("clearLog");
+    if (!clearArmed) {
+      btn.classList.add("armed"); btn.textContent = "Click again to erase every entry";
+      clearArmed = setTimeout(() => { clearArmed = null; btn.classList.remove("armed"); btn.textContent = "Clear logbook"; }, 4000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null; btn.classList.remove("armed"); btn.textContent = "Clear logbook";
+    logbook = []; store.set("sfd.logbook", logbook); renderLog();
+  });
+  $("again").addEventListener("click", () => { lastLanding = null; showView(); });
+
+  // ---------- View switching ----------
+  function showView() {
+    const active = !!flight;
+    $("planner").hidden = active || !!lastLanding || !!ticket;
+    $("ticketView").hidden = !ticket || active;
+    $("cockpit").hidden = !active;
+    renderLanded();
+    renderLog();
+    if (active) {
+      $("dFlight").textContent = flight.plan.flightNo + (flight.seat ? ` · Seat ${flight.seat}` : "");
+      $("dRoute").textContent = `${byCode[flight.plan.from].city} → ${byCode[flight.plan.to].city}`;
+      tick();
+    } else {
+      document.title = ticket ? `Ticket ${ticket.plan.from}→${ticket.plan.to}` : "Study Flight Deck";
+      syncForm(); renderPass();
+    }
+  }
+
+  setInterval(() => { if (flight) tick(); }, 250);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && flight) { if (!flight.pausedAt) keepAwake(); tick(); } });
+  window.addEventListener("resize", () => { if (flight) tick(); });
+
+  showView();
+})();
+</script>
+</body>
+</html>
