@@ -365,6 +365,23 @@ button, input, select { font: inherit; color: inherit; }
 .award.rank { background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: #fff; border: 0; }
 .award.streak { border-color: color-mix(in srgb, var(--focus) 55%, transparent); background: color-mix(in srgb, var(--focus) 12%, transparent); }
 
+/* Notices: moved site, incoming history */
+.notice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 16px; align-items: center; padding: 16px 20px; border-radius: var(--radius);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--accent) 12%, #fff), rgba(255, 255, 255, .9) 55%);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, #fff); box-shadow: 0 14px 34px rgba(28, 72, 124, .14); }
+.notice-icon { color: var(--accent-2); }
+.notice p { margin: 0; font-size: 17px; }
+.notice-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.notice .btn { text-decoration: none; display: inline-block; }
+.notice-code { grid-column: 1 / -1; width: 100%; font-family: var(--font-mono); font-size: 13px; border-radius: 10px; border: 1px solid var(--line); padding: 8px 10px; resize: vertical; }
+.import { border-top: 1px solid var(--line); padding-top: 12px; }
+.import summary { cursor: pointer; color: var(--label); font-size: 15px; }
+.import p { margin: 8px 0; color: var(--muted); font-size: 15px; }
+.import-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.import-row input { flex: 1 1 260px; min-width: 0; background: #fff; border: 1px solid rgba(16, 38, 74, .16); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.import-msg { min-height: 1em; }
+@media (max-width: 700px) { .notice { grid-template-columns: auto minmax(0, 1fr); } .notice-actions { grid-column: 1 / -1; justify-content: flex-start; } }
+
 /* Logbook */
 .logbook { display: grid; gap: 14px; }
 .logbook-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -440,6 +457,24 @@ td.num, th.num { text-align: right; }
       <button type="button" data-sound="soft" aria-pressed="false">Soft</button>
       <button type="button" data-sound="normal" aria-pressed="false">Normal</button>
       <button type="button" data-sound="loud" aria-pressed="false">Loud</button>
+    </div>
+  </div>
+
+  <div class="notice" id="movedNotice" role="region" aria-label="New link" hidden>
+    <svg class="notice-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4L3 11l7 2.5L12.5 21 21 4z"/><path d="M10 13.5L21 4"/></svg>
+    <p id="mnText"></p>
+    <div class="notice-actions">
+      <a class="btn primary" id="mnGo" href="https://claude.ai/artifact/9VNP5J31jFA3Ue25he5mfe" target="_blank" rel="noopener">Open the new link</a>
+      <button type="button" class="btn" id="mnCopy" hidden>Copy transfer code</button>
+    </div>
+    <textarea id="mnCode" class="notice-code" rows="2" readonly hidden aria-label="Transfer code"></textarea>
+  </div>
+  <div class="notice" id="transferNotice" role="status" hidden>
+    <svg class="notice-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 0 2-2h13a2 2 0 0 0 2 2v9a2 2 0 0 0-2 2h-13a2 2 0 0 0-2-2z"/><path d="M14 5.5v13" stroke-dasharray="2 2"/></svg>
+    <p id="tnText"></p>
+    <div class="notice-actions">
+      <button type="button" class="btn primary" id="tnAdd">Add to my logbook</button>
+      <button type="button" class="btn" id="tnDismiss">Not now</button>
     </div>
   </div>
 
@@ -678,6 +713,16 @@ td.num, th.num { text-align: right; }
       <button type="button" class="clear" id="clearLog" hidden>Clear logbook</button>
     </div>
     <div class="table-scroll" id="logWrap"></div>
+    <details class="import">
+      <summary>Bring flights from an old link</summary>
+      <p>On the old Study Flight Deck site, press <b>Copy transfer code</b>, then paste it here.</p>
+      <div class="import-row">
+        <label class="sr-only" for="importCode">Transfer code</label>
+        <input id="importCode" type="text" placeholder="Paste the transfer code or link" autocomplete="off" spellcheck="false">
+        <button type="button" class="btn" id="importBtn">Add flights</button>
+      </div>
+      <p class="import-msg" id="importMsg" role="status"></p>
+    </details>
   </section>
 
 </div>
@@ -2878,6 +2923,104 @@ void main() {
     renderBoard();
   }
 
+  // ---------- Moving history from the old link ----------
+  // History lives in each person's browser, under the address they used. People who used the old GitHub Pages
+  // site (or a downloaded copy) can carry it here: the old site packs their logbook into a link to the new home
+  // (#import-<code>, base64url, deflate-compressed where the browser can), and the new home asks before adding it.
+  const NEW_HOME = "https://claude.ai/artifact/9VNP5J31jFA3Ue25he5mfe";
+  const ON_OLD_LINK = location.protocol === "file:" || /(^|\.)github\.io$|(^|\.)studyflight\.com$/i.test(location.hostname);
+  const b64u = {
+    enc(bytes) { let s = ""; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); },
+    dec(str) { const s = atob(str.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((str.length + 3) % 4)); return Uint8Array.from(s, c => c.charCodeAt(0)); }
+  };
+  async function packLog(log) {
+    const rows = log.slice(0, LOG_MAX).map(e => [e.date, e.flightNo, e.from, e.to, e.blockMin, e.studyMin, e.diverted ? 1 : 0]);
+    const json = new TextEncoder().encode(JSON.stringify(rows));
+    if (typeof CompressionStream === "function") {
+      try { return "z" + b64u.enc(new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer())); } catch (e) { /* plain below */ }
+    }
+    return "j" + b64u.enc(json);
+  }
+  async function unpackLog(code) {
+    code = String(code).trim().replace(/^.*?import-/, "");   // accepts a whole link or just the code
+    if (!/^[zj][A-Za-z0-9_-]+$/.test(code)) throw new Error("not a transfer code");
+    const bytes = b64u.dec(code.slice(1));
+    const json = code[0] === "z"
+      ? await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text()
+      : new TextDecoder().decode(bytes);
+    const rows = JSON.parse(json);
+    if (!Array.isArray(rows)) throw new Error("not a transfer code");
+    const now = Date.now();
+    return rows.slice(0, LOG_MAX).map(r => Array.isArray(r) ? {
+      date: Number(r[0]), flightNo: String(r[1] || "SF 000").slice(0, 12), from: String(r[2]), to: String(r[3]),
+      blockMin: Math.max(0, Math.min(1440, Math.round(Number(r[4]) || 0))), studyMin: Math.max(0, Math.min(1440, Math.round(Number(r[5]) || 0))), diverted: !!r[6]
+    } : null).filter(e => e && byCode[e.from] && byCode[e.to] && e.date > 1.6e12 && e.date < now + 864e5 && e.studyMin <= e.blockMin + 1);
+  }
+  const logKey = e => e.date + "|" + e.flightNo;
+
+  // new home: offer to add flights that arrived in the link (or a pasted code)
+  let pendingImport = null;
+  function showImportOffer(entries, source) {
+    const have = new Set(logbook.map(logKey)), fresh = entries.filter(e => !have.has(logKey(e)));
+    const box = $("transferNotice");
+    box.hidden = false;
+    if (!fresh.length) {
+      pendingImport = null;
+      $("tnText").textContent = entries.length ? "Those flights are already in your logbook here." : "That transfer code didn't contain any flights.";
+      $("tnAdd").hidden = true; $("tnDismiss").textContent = "OK";
+      return;
+    }
+    pendingImport = fresh;
+    const mins = fresh.reduce((n, e) => n + e.studyMin, 0);
+    $("tnText").textContent = `${source} ${fresh.length} flight${fresh.length > 1 ? "s" : ""} with ${fmtHM(mins)} of study. Add them to your logbook here?`;
+    $("tnAdd").hidden = false; $("tnAdd").textContent = "Add to my logbook"; $("tnDismiss").textContent = "Not now";
+  }
+  $("tnAdd").addEventListener("click", () => {
+    if (!pendingImport) return;
+    const n = pendingImport.length;
+    logbook = mergeLogs(logbook, pendingImport); store.set("sfd.logbook", logbook);
+    pendingImport = null;
+    renderLog(); renderCareer(); syncCloud();
+    $("tnText").textContent = `Added ${n} flight${n > 1 ? "s" : ""}. ` + (cloud.uid && !cloud.readOnly
+      ? "They now count toward your rank, challenges and rankings, and are saved to your Claude account."
+      : "They now count toward your rank and challenges, and are saved in this browser.");
+    $("tnAdd").hidden = true; $("tnDismiss").textContent = "Done";
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the viewer may not allow it */ }
+  });
+  $("tnDismiss").addEventListener("click", () => { $("transferNotice").hidden = true; pendingImport = null; });
+  $("importBtn").addEventListener("click", async () => {
+    const val = $("importCode").value;
+    if (!val.trim()) { $("importMsg").textContent = "Paste the transfer code (or the whole link) from your old Study Flight Deck first."; return; }
+    try { showImportOffer(await unpackLog(val), "That code holds"); $("importMsg").textContent = ""; $("importCode").value = ""; $("transferNotice").scrollIntoView({ behavior: "smooth", block: "center" }); }
+    catch (e) { $("importMsg").textContent = "That doesn't look like a transfer code. Copy it again from the old site's \"Copy transfer code\" button."; }
+  });
+
+  // old link: point people to the new home and pack their history for the trip
+  async function setupOldLink() {
+    if (!ON_OLD_LINK) return;
+    const box = $("movedNotice"), n = logbook.length, mins = logbook.reduce((s, e) => s + e.studyMin, 0);
+    box.hidden = false;
+    $("mnText").textContent = n
+      ? `Study Flight Deck has moved to a new link, with rankings and history that follows you between devices. Bring your ${n} flight${n > 1 ? "s" : ""} (${fmtHM(mins)} of study) with you.`
+      : "Study Flight Deck has moved to a new link, with rankings and history that follows you between devices.";
+    $("mnGo").href = NEW_HOME;
+    $("mnGo").textContent = n ? "Move my history to the new link" : "Open the new link";
+    $("mnCopy").hidden = !n;
+    if (n) {
+      const code = await packLog(logbook);
+      $("mnGo").href = `${NEW_HOME}#import-${code}`;
+      $("mnCopy").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(code); $("mnCopy").textContent = "Copied"; }
+        catch (e) { $("mnCode").hidden = false; $("mnCode").value = code; $("mnCode").select(); $("mnCopy").textContent = "Select and copy the code below"; }
+      });
+    }
+  }
+  async function checkIncomingImport() {
+    if (ON_OLD_LINK || !location.hash.startsWith("#import-")) return;
+    try { showImportOffer(await unpackLog(location.hash.slice(1)), "Your old Study Flight Deck sent"); }
+    catch (e) { $("transferNotice").hidden = false; $("tnText").textContent = "The link carried history we couldn't read. Open the old site again and use \"Copy transfer code\", then paste it under Pilot logbook."; $("tnAdd").hidden = true; $("tnDismiss").textContent = "OK"; }
+  }
+
   // ---------- View switching ----------
   function showView() {
     const active = !!flight;
@@ -2905,6 +3048,9 @@ void main() {
 
   showView();
   initCloud();
+  setupOldLink();
+  checkIncomingImport();
+  window.addEventListener("hashchange", checkIncomingImport);
   setInterval(() => { if (!flight) renderCareer(); }, 60000);   // roll daily/weekly challenges over at midnight
 })();
 </script>

@@ -89,3 +89,9 @@ Notes fade in gently, so even Loud never starts with a sudden click. Picking a s
 ## Where your history is kept
 
 Every flight is saved in the browser. When the page is opened as the published claude.ai artifact while signed in, history is also saved to the person's private part of the artifact's database. That means it comes back whenever they reopen the link, even on another device. A summary row is also saved to a shared leaderboard that everyone on the page can see.
+
+## Moving history from the old link
+
+The app's home is now the claude.ai link. Each person's history is stored in their own browser, under the site address they used, so the old GitHub Pages site (or a downloaded copy) keeps its own separate history.
+
+When the app runs on the old site, it shows a **"Study Flight Deck has moved"** banner. **Move my history to the new link** opens the new link with the person's flights packed (compressed) into the address. The new link checks the flights, asks before adding them, and skips any that are already there. The added flights then count toward rank, streaks, challenges and the leaderboard, and sync to the person's Claude account. If a browser drops the packed data from the link, **Copy transfer code** on the old site plus **Bring flights from an old link** under the Pilot logbook does the same job.
