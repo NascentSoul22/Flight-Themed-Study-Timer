@@ -18,7 +18,7 @@ Open `index.html` in any browser. There's no build step and no dependencies. Kee
      - NASA Blue Marble satellite imagery with hill shading
      - city labels with each city's **local time**
      - the route as a gold band (flown) and a white band (still to fly), with maroon pins marking departure and arrival
-     - a shaded 3D airliner with navigation lights and a ground shadow
+     - a shaded 3D Boeing 747-style jumbo jet (upper-deck hump, four engines, winglets, cabin windows, navy tail with a coral stripe) with navigation lights and a ground shadow
      - **Daylight** lighting, or **Live sun**, which shows real day and night with city lights
      - drag to look around, + and − to zoom
    - the timer and flight data float over the map: phase, altitude, speed, distance, time to go, arrival, and the time at your destination
@@ -36,7 +36,7 @@ All data stays in your browser's local storage.
 
 The page is set in Times New Roman. Where that font isn't installed, it uses Tinos from Google Fonts, which has the same letter widths.
 
-The look is a twilight first-class cabin: an indigo-to-sunset sky, frosted-glass panels and champagne-gold details.
+The look is a daylight cabin: a bright window-seat sky with slowly drifting clouds, white frosted cards, navy type and coral accents.
 
 ## Background music
 
