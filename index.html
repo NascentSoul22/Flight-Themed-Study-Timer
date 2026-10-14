@@ -187,8 +187,26 @@ button, input, select { font: inherit; color: inherit; }
 .sign .sub { color: var(--muted); font-size: 15px; }
 .annunciator .flt { font-family: var(--font-mono); color: var(--muted); font-size: 14px; text-align: right; letter-spacing: .06em; }
 
-.deck { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; }
-.timer { display: grid; gap: 18px; align-content: start; }
+/* In-flight moving map: the map is the stage, timer and flight data float over it */
+.ife { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--space);
+  box-shadow: 0 30px 70px rgba(4, 2, 18, .55), inset 0 1px 0 rgba(255, 255, 255, .08); }
+.map-slot { position: relative; }
+.deck-slot { height: clamp(480px, 70vh, 780px); }
+.plan-slot { height: 300px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--space); }
+.map-stage { position: absolute; inset: 0; }
+.map-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#map { touch-action: none; }
+.plan-slot #map { touch-action: auto; }
+.hud { position: absolute; z-index: 2; background: linear-gradient(180deg, rgba(14, 11, 36, .72), rgba(8, 6, 24, .62));
+  backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, .14); border-radius: 18px; box-shadow: 0 14px 36px rgba(0, 0, 0, .4); }
+.hud-timer { left: 18px; top: 18px; padding: 14px 22px 16px; display: grid; gap: 2px; max-width: min(400px, 52%); }
+.hud-timer .big { font-size: clamp(58px, 7.4vw, 104px); }
+.hud-timer .next { font-size: 15px; }
+.hud-strip { left: 18px; right: 18px; bottom: 18px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: hidden; }
+.hud-strip .inst { background: none; border: 0; border-radius: 0; border-right: 1px solid rgba(255, 255, 255, .1); padding: 11px 14px; }
+.hud-strip .inst:last-child { border-right: 0; }
+.deck-bottom { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
 .big {
   font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 400; font-style: italic;
   font-size: clamp(80px, 16vw, 140px); line-height: .9; letter-spacing: -.01em; color: var(--focus);
@@ -198,22 +216,18 @@ button, input, select { font: inherit; color: inherit; }
 .hold-mode .big { color: var(--muted); }
 .next { color: var(--muted); font-size: 16px; }
 .next b { color: var(--ink); font-weight: 700; }
-.instruments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .inst { background: rgba(8, 6, 24, .4); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
 .inst .label { font-size: 10px; }
 .inst .v { font-family: var(--font-mono); font-size: 21px; font-variant-numeric: tabular-nums; }
 .inst .v small { font-size: 12px; color: var(--muted); margin-left: 3px; font-style: italic; }
-.panel.nd { position: relative; padding: 0; overflow: hidden; background: var(--space); }
-.nd canvas { display: block; width: 100%; height: 100%; min-height: 400px; touch-action: none; }
-.nd-tools { position: absolute; right: 12px; top: 10px; z-index: 1; display: flex; gap: 6px; }
+.nd-tools { position: absolute; right: 18px; top: 18px; z-index: 3; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
 .nd-tools button {
   background: rgba(10, 8, 30, .6); border: 1px solid rgba(255, 255, 255, .18); color: var(--ink);
   border-radius: 999px; padding: 5px 13px; cursor: pointer; font-size: 13px; letter-spacing: .08em; backdrop-filter: blur(8px);
 }
 .nd-tools button[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border-color: #f6d896; }
 .nd-tools button:hover { border-color: var(--gold); }
-.nd-hint { position: absolute; right: 14px; bottom: 10px; z-index: 1; font-size: 13px; font-style: italic; color: rgba(246, 240, 230, .72); text-shadow: 0 1px 3px #000; pointer-events: none; }
-.nd .nd-tag { position: absolute; left: 14px; top: 13px; z-index: 1; text-shadow: 0 1px 3px #000; }
+.nd-hint { position: absolute; right: 22px; top: 62px; z-index: 3; font-size: 13px; font-style: italic; color: rgba(246, 240, 230, .72); text-shadow: 0 1px 3px #000; pointer-events: none; }
 .controls { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* Landed */
@@ -278,15 +292,16 @@ button, input, select { font: inherit; color: inherit; }
 .music-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8dd9e, var(--gold)); color: #21162e; border-color: #f6d896; }
 .music-btn[aria-pressed="true"]::before { width: 10px; height: 12px; border: 0; border-left: 3px solid currentColor; border-right: 3px solid currentColor; box-sizing: border-box; }
 #musicStation {
-  background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font-size: 15px; min-width: 0; max-width: 100%;
+  background: rgba(8, 6, 24, .45); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font-size: 15px; min-width: 0; max-width: min(250px, 100%);
 }
 #musicStation option { background: var(--panel); color: var(--ink); }
 .music-vol { display: flex; align-items: center; gap: 8px; }
-.music-vol input { accent-color: var(--gold); width: 120px; }
-.now-playing { color: var(--muted); font-style: italic; font-size: 14px; flex: 1 1 220px; min-width: 0; }
+.music-vol input { accent-color: var(--gold); width: 100px; }
+.now-playing { color: var(--muted); font-style: italic; font-size: 14px; flex: 1 1 160px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Sound control */
 .top-right { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+.cabin-bar .sound { margin-left: auto; background: rgba(8, 6, 24, .35); }
 .sound {
   display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 14px; border-radius: 14px;
   background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); flex-wrap: wrap;
@@ -333,7 +348,8 @@ button, input, select { font: inherit; color: inherit; }
 .ch.done { border-color: color-mix(in srgb, var(--gold) 50%, transparent); background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 14%, transparent), rgba(8, 6, 24, .38)); }
 .ch-top { display: flex; gap: 10px; align-items: center; }
 .ch-top b { display: block; font-size: 17px; }
-.ch-medal { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1.5px dashed rgba(255, 255, 255, .25); color: #21162e; font-weight: 700; }
+.ch-medal { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid rgba(255, 255, 255, .16); color: var(--muted); background: rgba(255, 255, 255, .03); }
+.ch.done .ch-medal { color: #21162e; }
 .ch.done .ch-medal { border: 0; background: linear-gradient(180deg, #fbe3a8, var(--gold-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 50%, transparent); }
 .ch-kind { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--focus); }
 .ch p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -365,11 +381,22 @@ td.num, th.num { text-align: right; }
   .career-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pass-route .code { font-size: 48px; }
-  .nd canvas { min-height: 300px; }
+  .ife { display: flex; flex-direction: column; }
+  .ife .hud, .ife .nd-tools { position: static; max-width: none; border-radius: 0; box-shadow: none; border: 0; }
+  .hud-timer { order: -2; border-bottom: 1px solid var(--line) !important; }
+  .ife .nd-tools { order: -1; justify-content: flex-start; padding: 10px 14px 0; background: rgba(8, 6, 24, .6); }
+  .deck-slot { height: 400px; }
+  .hud-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line) !important; }
+  .hud-strip .inst { border-bottom: 1px solid rgba(255, 255, 255, .08); }
+  .nd-hint { display: none; }
+  .deck-bottom { grid-template-columns: 1fr; }
+  .plan-slot { height: 240px; }
+  .cabin-bar .sound { margin-left: 0; }
   .hours { text-align: left; }
 }
 @media (max-width: 420px) {
-  .instruments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hud-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .deck-slot { height: 340px; }
   .sign .what { font-size: 23px; }
   .panel { padding: 18px; }
   .nd-hint { display: none; }
@@ -391,23 +418,23 @@ td.num, th.num { text-align: right; }
       </div>
     </div>
     <div class="top-right">
-      <div class="sound" role="group" aria-label="Chime volume for study and break changes">
-        <span class="label">Chime</span>
-        <button type="button" data-sound="off" aria-pressed="false">Off</button>
-        <button type="button" data-sound="soft" aria-pressed="false">Soft</button>
-        <button type="button" data-sound="normal" aria-pressed="false">Normal</button>
-        <button type="button" data-sound="loud" aria-pressed="false">Loud</button>
-      </div>
       <div class="hours">Logged study time <b id="totalHours">0h 00m</b></div>
     </div>
   </header>
 
-  <div class="music-bar" role="group" aria-label="Background music">
+  <div class="music-bar cabin-bar" role="group" aria-label="Cabin audio">
     <button type="button" class="music-btn" id="musicBtn" aria-pressed="false">Play music</button>
     <label class="sr-only" for="musicStation">Music style</label>
     <select id="musicStation"></select>
     <label class="music-vol"><span class="label">Volume</span><input type="range" id="musicVol" min="0" max="100" step="1"></label>
     <span class="now-playing" id="nowPlaying"></span>
+    <div class="sound" role="group" aria-label="Chime volume for study and break changes">
+      <span class="label">Chime</span>
+      <button type="button" data-sound="off" aria-pressed="false">Off</button>
+      <button type="button" data-sound="soft" aria-pressed="false">Soft</button>
+      <button type="button" data-sound="normal" aria-pressed="false">Normal</button>
+      <button type="button" data-sound="loud" aria-pressed="false">Loud</button>
+    </div>
   </div>
 
   <!-- PLANNER -->
@@ -483,6 +510,7 @@ td.num, th.num { text-align: right; }
         <span><i style="background:var(--focus);box-shadow:0 0 8px var(--focus)"></i>Seatbelt on: study</span>
         <span><i style="background:var(--break);box-shadow:0 0 8px var(--break)"></i>Seatbelt off: break</span>
       </div>
+      <div class="map-slot plan-slot" id="planMapSlot" aria-label="Route preview"></div>
     </article>
   </section>
 
@@ -505,42 +533,49 @@ td.num, th.num { text-align: right; }
         <div class="flt"><div id="dFlight">SF 000</div><div id="dRoute">—</div></div>
       </div>
 
-      <div class="deck">
-        <div class="panel timer" id="timerPanel">
+      <div class="ife" id="ife">
+        <div class="map-slot deck-slot" id="deckMapSlot">
+          <div class="map-stage" id="mapStage">
+            <canvas id="globe" hidden></canvas>
+            <canvas id="map" aria-label="Moving map of the route with the aircraft position"></canvas>
+          </div>
+        </div>
+        <div class="hud hud-timer" id="timerPanel">
           <div class="label" id="segLabel">Time left in this study block</div>
           <div class="big" id="segClock" aria-live="off">00:00</div>
           <div class="next" id="nextUp"></div>
-          <div class="instruments">
-            <div class="inst"><span class="label">Phase</span><span class="v" id="iPhase" style="font-size:15px">—</span></div>
-            <div class="inst"><span class="label">Altitude</span><span class="v" id="iAlt">—</span></div>
-            <div class="inst"><span class="label">Ground spd</span><span class="v" id="iGs">—</span></div>
-            <div class="inst"><span class="label">Dist to go</span><span class="v" id="iDist">—</span></div>
-            <div class="inst"><span class="label">Time to go</span><span class="v" id="iTtg">—</span></div>
-            <div class="inst"><span class="label">ETA</span><span class="v" id="iEta">—</span></div>
-          </div>
-          <div class="controls">
-            <button type="button" class="btn" id="holdBtn">Enter holding</button>
-            <button type="button" class="btn" id="skipBtn">Skip to next</button>
-            <button type="button" class="btn danger" id="divertBtn">Divert</button>
-          </div>
         </div>
-        <div class="panel nd">
-          <span class="label nd-tag">Nav display</span>
-          <div class="nd-tools" role="group" aria-label="Map view">
-            <button type="button" data-map-mode="globe" aria-pressed="true">3D globe</button>
-            <button type="button" data-map-mode="flat" aria-pressed="false">Flat</button>
-            <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
-            <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
-          </div>
-          <span class="nd-hint" id="ndHint"></span>
-          <canvas id="map" aria-label="Map of the route with the aircraft position"></canvas>
+        <div class="nd-tools" role="group" aria-label="Map view">
+          <button type="button" data-map-mode="follow" aria-pressed="true">Follow</button>
+          <button type="button" data-map-mode="overview" aria-pressed="false">Route</button>
+          <button type="button" data-map-mode="flat" aria-pressed="false">Flat</button>
+          <button type="button" id="lightBtn" aria-pressed="false">Daylight</button>
+          <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+          <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+        </div>
+        <span class="nd-hint" id="ndHint"></span>
+        <div class="hud hud-strip instruments">
+          <div class="inst"><span class="label">Phase</span><span class="v" id="iPhase">—</span></div>
+          <div class="inst"><span class="label">Altitude</span><span class="v" id="iAlt">—</span></div>
+          <div class="inst"><span class="label">Ground speed</span><span class="v" id="iGs">—</span></div>
+          <div class="inst"><span class="label">Distance to go</span><span class="v" id="iDist">—</span></div>
+          <div class="inst"><span class="label">Time to go</span><span class="v" id="iTtg">—</span></div>
+          <div class="inst"><span class="label">Arrival</span><span class="v" id="iEta">—</span></div>
+          <div class="inst"><span class="label" id="iDestLabel">Time at destination</span><span class="v" id="iDestTime">—</span></div>
         </div>
       </div>
 
-      <div class="panel strip-wrap">
-        <div class="label">Seatbelt schedule</div>
-        <div class="strip" id="dStrip"></div>
-        <div class="strip-scale mono"><span id="dStripStart">0:00</span><span id="dStripEnd"></span></div>
+      <div class="deck-bottom">
+        <div class="controls">
+          <button type="button" class="btn" id="holdBtn">Enter holding</button>
+          <button type="button" class="btn" id="skipBtn">Skip to next</button>
+          <button type="button" class="btn danger" id="divertBtn">Divert</button>
+        </div>
+        <div class="panel strip-wrap">
+          <div class="label">Seatbelt schedule</div>
+          <div class="strip" id="dStrip"></div>
+          <div class="strip-scale mono"><span id="dStripStart">0:00</span><span id="dStripEnd"></span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -608,7 +643,7 @@ td.num, th.num { text-align: right; }
       <div class="rank-next" id="rankNext"></div>
       <div class="career-stats">
         <div><span class="label">Streak</span><b id="cStreak">0 days</b></div>
-        <div><span class="label">Best streak</span><b id="cBest">0 days</b></div>
+        <div><span class="label">Best</span><b id="cBest">0 days</b></div>
         <div><span class="label">Today</span><b id="cToday">0h 00m</b></div>
         <div><span class="label">This week</span><b id="cWeek">0h 00m</b></div>
       </div>
@@ -715,6 +750,100 @@ td.num, th.num { text-align: right; }
   const AIRPORTS = Object.entries(REGIONS).flatMap(([region, list]) =>
     list.map(([code, city, lat, lon]) => ({ code, city, lat, lon, region })));
   const byCode = Object.fromEntries(AIRPORTS.map(a => [a.code, a]));
+
+  // ---------- Map labels: cities with their local time ----------
+  const TZ_GROUPS = {
+    "Asia/Tokyo": "HND NRT KIX CTS FUK OKA", "Asia/Seoul": "ICN PUS", "Asia/Shanghai": "PEK PVG CAN CTU", "Asia/Hong_Kong": "HKG",
+    "Asia/Taipei": "TPE", "Asia/Ulaanbaatar": "UBN", "Asia/Bangkok": "BKK", "Asia/Singapore": "SIN", "Asia/Kuala_Lumpur": "KUL",
+    "Asia/Jakarta": "CGK", "Asia/Makassar": "DPS", "Asia/Ho_Chi_Minh": "SGN HAN", "Asia/Yangon": "RGN", "Asia/Phnom_Penh": "PNH",
+    "Asia/Manila": "MNL CRK LAO CEB TAG ILO BCD MPH KLO PPS TAC IAO CGY DVO GES ZAM",
+    "Asia/Kolkata": "DEL BOM BLR MAA CCU", "Asia/Colombo": "CMB", "Asia/Kathmandu": "KTM", "Asia/Dhaka": "DAC", "Indian/Maldives": "MLE",
+    "Asia/Karachi": "KHI ISB", "Asia/Dubai": "DXB AUH", "Asia/Qatar": "DOH", "Asia/Bahrain": "BAH", "Asia/Kuwait": "KWI", "Asia/Muscat": "MCT",
+    "Asia/Riyadh": "RUH JED", "Asia/Amman": "AMM", "Asia/Jerusalem": "TLV", "Asia/Beirut": "BEY", "Asia/Tehran": "IKA",
+    "Asia/Tashkent": "TAS SKD", "Asia/Almaty": "ALA NQZ", "Asia/Bishkek": "FRU", "Asia/Dushanbe": "DYU", "Asia/Ashgabat": "ASB",
+    "Asia/Baku": "GYD", "Asia/Tbilisi": "TBS", "Asia/Yerevan": "EVN",
+    "Europe/London": "LHR MAN EDI", "Europe/Dublin": "DUB", "Europe/Paris": "CDG NCE", "Europe/Amsterdam": "AMS", "Europe/Brussels": "BRU",
+    "Europe/Berlin": "FRA MUC BER", "Europe/Zurich": "ZRH GVA", "Europe/Vienna": "VIE", "Europe/Prague": "PRG", "Europe/Budapest": "BUD",
+    "Europe/Warsaw": "WAW KRK", "Europe/Copenhagen": "CPH", "Europe/Oslo": "OSL", "Europe/Stockholm": "ARN", "Europe/Helsinki": "HEL",
+    "Atlantic/Reykjavik": "KEF", "Europe/Tallinn": "TLL", "Europe/Riga": "RIX", "Europe/Vilnius": "VNO", "Europe/Madrid": "MAD BCN PMI AGP",
+    "Europe/Lisbon": "LIS OPO", "Europe/Rome": "FCO MXP VCE NAP", "Europe/Athens": "ATH", "Europe/Zagreb": "ZAG DBV", "Europe/Belgrade": "BEG",
+    "Europe/Bucharest": "OTP", "Europe/Sofia": "SOF", "Europe/Kyiv": "KBP", "Europe/Istanbul": "IST AYT", "Asia/Nicosia": "LCA", "Europe/Malta": "MLA",
+    "Africa/Cairo": "CAI LXR HRG", "Africa/Casablanca": "CMN RAK", "Africa/Algiers": "ALG", "Africa/Tunis": "TUN", "Africa/Khartoum": "KRT",
+    "Africa/Addis_Ababa": "ADD", "Africa/Nairobi": "NBO MBA", "Africa/Kampala": "EBB", "Africa/Kigali": "KGL", "Africa/Dar_es_Salaam": "DAR ZNZ JRO",
+    "Africa/Lagos": "LOS ABV", "Africa/Accra": "ACC", "Africa/Abidjan": "ABJ", "Africa/Dakar": "DSS", "Africa/Bamako": "BKO", "Africa/Douala": "DLA NSI",
+    "Africa/Libreville": "LBV", "Africa/Kinshasa": "FIH", "Africa/Bangui": "BGF", "Africa/Ndjamena": "NDJ", "Africa/Luanda": "LAD",
+    "Africa/Lusaka": "LUN", "Africa/Harare": "HRE VFA", "Africa/Blantyre": "LLW", "Africa/Maputo": "MPM", "Africa/Johannesburg": "JNB CPT DUR",
+    "Africa/Windhoek": "WDH", "Africa/Gaborone": "GBE", "Indian/Antananarivo": "TNR", "Indian/Mauritius": "MRU", "Indian/Mahe": "SEZ",
+    "America/New_York": "JFK BOS IAD ATL MIA", "America/Chicago": "ORD DFW", "America/Denver": "DEN", "America/Los_Angeles": "LAS LAX SFO SEA",
+    "America/Anchorage": "ANC", "Pacific/Honolulu": "HNL", "America/Toronto": "YYZ YUL", "America/Vancouver": "YVR", "America/Mexico_City": "MEX",
+    "America/Cancun": "CUN", "America/Belize": "BZE", "America/Guatemala": "GUA", "America/El_Salvador": "SAL", "America/Tegucigalpa": "SAP",
+    "America/Managua": "MGA", "America/Costa_Rica": "SJO LIR", "America/Panama": "PTY", "America/Havana": "HAV", "America/Nassau": "NAS",
+    "America/Jamaica": "KIN", "America/Santo_Domingo": "SDQ PUJ", "America/Puerto_Rico": "SJU", "America/Bogota": "BOG MDE",
+    "America/Caracas": "CCS", "America/Guayaquil": "UIO", "America/Lima": "LIM CUZ", "America/La_Paz": "LPB", "America/Santiago": "SCL",
+    "America/Argentina/Buenos_Aires": "EZE", "America/Montevideo": "MVD", "America/Sao_Paulo": "GRU GIG", "Australia/Sydney": "SYD",
+    "Australia/Melbourne": "MEL", "Australia/Brisbane": "BNE", "Australia/Perth": "PER", "Pacific/Auckland": "AKL CHC", "Pacific/Fiji": "NAN",
+    "Pacific/Tahiti": "PPT", "Pacific/Port_Moresby": "POM", "Pacific/Guam": "GUM"
+  };
+  const TZ = {};
+  for (const [z, codes] of Object.entries(TZ_GROUPS)) for (const c of codes.split(" ")) TZ[c] = z;
+  // big, well-known airports get first claim on label space
+  const MAJOR = new Set(("HND PEK PVG HKG ICN TPE SIN BKK KUL CGK MNL CEB DVO DEL BOM DXB DOH IST LHR CDG FRA MAD FCO AMS MUC VIE ATH WAW HEL OSL ARN " +
+    "CAI CMN LOS NBO ADD JNB ACC DSS FIH JFK LAX ORD ATL MIA YYZ MEX GRU EZE BOG LIM SCL SYD MEL AKL TAS ALA GYD TBS KTM DAC KHI RUH TLV IKA HNL").split(" "));
+  // more cities, for a map that reads like a real moving map
+  const EXTRA_CITIES = [
+    ["Moscow", 55.7558, 37.6173, "Europe/Moscow", 1], ["Saint Petersburg", 59.9343, 30.3351, "Europe/Moscow", 2], ["Kazan", 55.7963, 49.1088, "Europe/Moscow", 2],
+    ["Yekaterinburg", 56.8389, 60.6057, "Asia/Yekaterinburg", 2], ["Novosibirsk", 55.0084, 82.9357, "Asia/Novosibirsk", 2], ["Omsk", 54.9885, 73.3242, "Asia/Omsk", 2],
+    ["Krasnoyarsk", 56.0153, 92.8932, "Asia/Krasnoyarsk", 2], ["Irkutsk", 52.287, 104.305, "Asia/Irkutsk", 2], ["Yakutsk", 62.0355, 129.6755, "Asia/Yakutsk", 2],
+    ["Vladivostok", 43.1155, 131.8855, "Asia/Vladivostok", 2], ["Magadan", 59.5612, 150.8301, "Asia/Magadan", 2], ["Murmansk", 68.9585, 33.0827, "Europe/Moscow", 2],
+    ["Minsk", 53.9006, 27.559, "Europe/Minsk", 1], ["Odesa", 46.4825, 30.7233, "Europe/Kyiv", 2], ["Chișinău", 47.0105, 28.8638, "Europe/Chisinau", 2],
+    ["Hamburg", 53.5511, 9.9937, "Europe/Berlin", 2], ["Lyon", 45.764, 4.8357, "Europe/Paris", 2], ["Marseille", 43.2965, 5.3698, "Europe/Paris", 2],
+    ["Seville", 37.3891, -5.9845, "Europe/Madrid", 2], ["Florence", 43.7696, 11.2558, "Europe/Rome", 2], ["Sarajevo", 43.8563, 18.4131, "Europe/Sarajevo", 2],
+    ["Bratislava", 48.1486, 17.1077, "Europe/Bratislava", 2], ["Ljubljana", 46.0569, 14.5058, "Europe/Ljubljana", 2], ["Tirana", 41.3275, 19.8187, "Europe/Tirane", 2],
+    ["Glasgow", 55.8642, -4.2518, "Europe/London", 2], ["Bergen", 60.3913, 5.3221, "Europe/Oslo", 2], ["Gothenburg", 57.7089, 11.9746, "Europe/Stockholm", 2],
+    ["Tromsø", 69.6492, 18.9553, "Europe/Oslo", 2], ["Ankara", 39.9334, 32.8597, "Europe/Istanbul", 1], ["Baghdad", 33.3152, 44.3661, "Asia/Baghdad", 1],
+    ["Damascus", 33.5138, 36.2765, "Asia/Damascus", 2], ["Kabul", 34.5553, 69.2075, "Asia/Kabul", 1], ["Lahore", 31.5204, 74.3587, "Asia/Karachi", 2],
+    ["Hyderabad", 17.385, 78.4867, "Asia/Kolkata", 2], ["Ahmedabad", 23.0225, 72.5714, "Asia/Kolkata", 2], ["Lhasa", 29.652, 91.1721, "Asia/Shanghai", 2],
+    ["Ürümqi", 43.8256, 87.6168, "Asia/Shanghai", 2], ["Xi'an", 34.3416, 108.9398, "Asia/Shanghai", 2], ["Wuhan", 30.5928, 114.3055, "Asia/Shanghai", 2],
+    ["Harbin", 45.8038, 126.535, "Asia/Shanghai", 2], ["Kunming", 25.0389, 102.7183, "Asia/Shanghai", 2], ["Pyongyang", 39.0392, 125.7625, "Asia/Pyongyang", 2],
+    ["Vientiane", 17.9757, 102.6331, "Asia/Vientiane", 2], ["Mandalay", 21.9588, 96.0891, "Asia/Yangon", 2], ["Chiang Mai", 18.7883, 98.9853, "Asia/Bangkok", 2],
+    ["Da Nang", 16.0544, 108.2022, "Asia/Ho_Chi_Minh", 2], ["Surabaya", -7.2575, 112.7521, "Asia/Jakarta", 2], ["Makassar", -5.1477, 119.4327, "Asia/Makassar", 2],
+    ["Kota Kinabalu", 5.9804, 116.0735, "Asia/Kuching", 2], ["Brunei", 4.9031, 114.9398, "Asia/Brunei", 2], ["Darwin", -12.4634, 130.8456, "Australia/Darwin", 2],
+    ["Cairns", -16.9186, 145.7781, "Australia/Brisbane", 2], ["Adelaide", -34.9285, 138.6007, "Australia/Adelaide", 2], ["Alice Springs", -23.698, 133.8807, "Australia/Darwin", 2],
+    ["Wellington", -41.2865, 174.7762, "Pacific/Auckland", 2], ["Nouméa", -22.2758, 166.458, "Pacific/Noumea", 2], ["Tripoli", 32.8872, 13.1913, "Africa/Tripoli", 2],
+    ["Benghazi", 32.1167, 20.0667, "Africa/Tripoli", 2], ["Niamey", 13.5116, 2.1254, "Africa/Niamey", 2], ["Ouagadougou", 12.3714, -1.5197, "Africa/Ouagadougou", 2],
+    ["Nouakchott", 18.0735, -15.9582, "Africa/Nouakchott", 2], ["Timbuktu", 16.7666, -3.0026, "Africa/Bamako", 2], ["Kano", 12.0022, 8.592, "Africa/Lagos", 2],
+    ["Juba", 4.8594, 31.5713, "Africa/Juba", 2], ["Mogadishu", 2.0469, 45.3182, "Africa/Mogadishu", 2], ["Djibouti", 11.5721, 43.1456, "Africa/Djibouti", 2],
+    ["Asmara", 15.3229, 38.9251, "Africa/Asmara", 2], ["Lubumbashi", -11.6876, 27.5026, "Africa/Lubumbashi", 2], ["Kisangani", 0.5153, 25.191, "Africa/Lubumbashi", 2],
+    ["Tamanrasset", 22.785, 5.5228, "Africa/Algiers", 2], ["Fez", 34.0181, -5.0078, "Africa/Casablanca", 2], ["Aswan", 24.0889, 32.8998, "Africa/Cairo", 2],
+    ["Gqeberha", -33.9608, 25.6022, "Africa/Johannesburg", 2], ["Houston", 29.7604, -95.3698, "America/Chicago", 2], ["Phoenix", 33.4484, -112.074, "America/Phoenix", 2],
+    ["Salt Lake City", 40.7608, -111.891, "America/Denver", 2], ["Minneapolis", 44.9778, -93.265, "America/Chicago", 2], ["New Orleans", 29.9511, -90.0715, "America/Chicago", 2],
+    ["Calgary", 51.0447, -114.0719, "America/Edmonton", 2], ["Winnipeg", 49.8951, -97.1384, "America/Winnipeg", 2], ["Halifax", 44.6488, -63.5752, "America/Halifax", 2],
+    ["St. John's", 47.5615, -52.7126, "America/St_Johns", 2], ["Nuuk", 64.1835, -51.7216, "America/Nuuk", 2], ["Guadalajara", 20.6597, -103.3496, "America/Mexico_City", 2],
+    ["Monterrey", 25.6866, -100.3161, "America/Monterrey", 2], ["Manaus", -3.119, -60.0217, "America/Manaus", 2], ["Brasília", -15.7975, -47.8919, "America/Sao_Paulo", 1],
+    ["Salvador", -12.9777, -38.5016, "America/Bahia", 2], ["Recife", -8.0476, -34.877, "America/Recife", 2], ["Belém", -1.4558, -48.4902, "America/Belem", 2],
+    ["Asunción", -25.2637, -57.5759, "America/Asuncion", 2], ["Santa Cruz", -17.8146, -63.1561, "America/La_Paz", 2], ["Córdoba", -31.4201, -64.1888, "America/Argentina/Cordoba", 2],
+    ["Ushuaia", -54.8019, -68.303, "America/Argentina/Ushuaia", 2], ["Punta Arenas", -53.1638, -70.9171, "America/Punta_Arenas", 2], ["Georgetown", 6.8013, -58.1551, "America/Guyana", 2],
+    ["Paramaribo", 5.852, -55.2038, "America/Paramaribo", 2]
+  ];
+  const shortCity = c => ({ "Fiji Nadi": "Nadi", "Liberia (Costa Rica)": "Liberia", "Bali Denpasar": "Denpasar", "New York JFK": "New York" })[c] ||
+    c.replace(/ (Haneda|Narita|Kansai|Incheon|Heathrow|Dulles|Panglao|Caticlan)$/, "");
+  const MAP_LABELS = AIRPORTS.map(a => ({ name: shortCity(a.city), lat: a.lat, lon: a.lon, tz: TZ[a.code], tier: MAJOR.has(a.code) ? 1 : 2, code: a.code }))
+    .concat(EXTRA_CITIES.map(([name, lat, lon, tz, tier]) => ({ name, lat, lon, tz, tier })));
+  MAP_LABELS.forEach((l, i) => { const c = Math.cos(l.lat * Math.PI / 180); l.v = [c * Math.cos(l.lon * Math.PI / 180), c * Math.sin(l.lon * Math.PI / 180), Math.sin(l.lat * Math.PI / 180)]; l.order = i; });
+  const TZ_ALIAS = { "Europe/Kyiv": "Europe/Kiev", "America/Nuuk": "America/Godthab" };
+  const tzFmt = {};
+  function localTime(tz, t = Date.now()) {
+    if (!tz) return "";
+    for (const z of [tz, TZ_ALIAS[tz]]) {
+      if (!z) continue;
+      try {
+        const f = tzFmt[z] || (tzFmt[z] = new Intl.DateTimeFormat("en-GB", { timeZone: z, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
+        return f.format(t);
+      } catch (e) { /* unknown zone on this browser: try the alias */ }
+    }
+    return "";
+  }
+
 
   const CRUISE_KMH = 830;      // typical jet cruise ground speed
   const TAXI_CLIMB_MIN = 30;   // taxi, climb and approach allowance
@@ -891,6 +1020,7 @@ td.num, th.num { text-align: right; }
     $("pEta").textContent = clockAt(Date.now() + p.totalMin * 60000);
     renderStrip($("pStrip"), p, null);
     $("pStripEnd").textContent = fmtStrip(p.totalMin);
+    if (typeof refreshMap === "function" && !flight) requestAnimationFrame(refreshMap);
   }
 
   function saveDraft() { store.set("sfd.draft", draft); syncForm(); renderPass(); try { music.refresh(); } catch (e) {} }
@@ -1134,6 +1264,8 @@ td.num, th.num { text-align: right; }
     $("iDist").innerHTML = `${Math.round(plan.distKm / 1.852 * (1 - f)).toLocaleString()}<small>nm</small>`;
     $("iTtg").textContent = fmtClock(ttgMs);
     $("iEta").textContent = held ? "--:--" : clockAt(now + ttgMs);
+    $("iDestLabel").textContent = `Time in ${shortCity(byCode[plan.to].city)}`;
+    $("iDestTime").textContent = localTime(TZ[plan.to], now) || "—";
     $("holdBtn").textContent = held ? "Resume flight" : "Enter holding";
 
     renderStrip($("dStrip"), plan, el);
@@ -1156,7 +1288,7 @@ td.num, th.num { text-align: right; }
   const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
   const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
-  let mapMode = store.get("sfd.mapMode", "globe") === "flat" ? "flat" : "globe";
+  let mapMode = ({ follow: "follow", overview: "overview", flat: "flat" })[store.get("sfd.mapMode", "follow")] || "follow";
   let mapZoom = 1, userView = null, userViewUntil = 0, lastMap = null;
   const LOOK_MS = 12000;   // how long the globe stays where you dragged it before following the plane again
 
@@ -1528,7 +1660,7 @@ td.num, th.num { text-align: right; }
   // painter's sorting. It is oriented by the same camera as the globe, so it pitches, turns and tilts with the view.
   const PLANE = (() => {
     const faces = [], add = (pts, kind) => faces.push({ pts, kind });
-    const SIDES = 12;
+    const SIDES = 16;
     const stations = [[0.5, 0.004, -0.004], [0.47, 0.03, -0.004], [0.42, 0.05, 0], [0.33, 0.056, 0],
                       [-0.28, 0.056, 0], [-0.4, 0.04, 0.012], [-0.5, 0.01, 0.03]];
     const rings = stations.map(([x, r, zc]) => Array.from({ length: SIDES }, (_, k) => {
@@ -1578,11 +1710,13 @@ td.num, th.num { text-align: right; }
       }
       ctx.fill("nonzero");
     }
-    const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, size * 0.9);
-    glow.addColorStop(0, "rgba(255, 225, 170, 0.28)"); glow.addColorStop(1, "rgba(255, 225, 170, 0)");
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ox, oy, size * 0.9, 0, Math.PI * 2); ctx.fill();
-    const COL = { body: [244, 242, 238], stripe: hexRGB(C.gold), tail: hexRGB(C.gold), wing: [200, 206, 218],
-                  engine: [140, 150, 168], intake: [34, 38, 52], glass: [28, 36, 66] };
+    if (C.glow !== false) {   // a soft halo keeps the aircraft visible over a dark night map
+      const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, size * 0.9);
+      glow.addColorStop(0, "rgba(255, 225, 170, 0.28)"); glow.addColorStop(1, "rgba(255, 225, 170, 0)");
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ox, oy, size * 0.9, 0, Math.PI * 2); ctx.fill();
+    }
+    const COL = { body: [246, 246, 248], stripe: hexRGB(C.gold), tail: C.tail || hexRGB(C.gold), wing: [206, 211, 222],
+                  engine: [150, 158, 175], intake: [34, 38, 52], glass: [28, 36, 66] };
     const list = PLANE.map(f => {
       const vs = f.pts.map(P);
       return { f, vs, z: vs.reduce((s, v) => s + v[2], 0) / vs.length, n: P(f.n) };
@@ -1592,7 +1726,7 @@ td.num, th.num { text-align: right; }
       let n = it.n; if (n[2] < 0) n = n.map(x => -x);
       const diff = Math.max(0, n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]);
       const spec = Math.pow(Math.max(0, n[0] * HALF[0] + n[1] * HALF[1] + n[2] * HALF[2]), 24) * (it.f.kind === "glass" ? 0.9 : 0.35);
-      const base = COL[it.f.kind], k = 0.4 + 0.6 * diff;
+      const base = COL[it.f.kind], k = 0.5 + 0.5 * diff;
       const rgb = base.map(c => Math.min(255, Math.round(c * k + 255 * spec)));
       ctx.fillStyle = ctx.strokeStyle = `rgb(${rgb})`; ctx.lineWidth = 0.6;
       ctx.beginPath();
@@ -1628,7 +1762,7 @@ td.num, th.num { text-align: right; }
     ctx.stroke();
   }
 
-  function drawMap(plan, f) {
+  function legacyDrawMap(plan, f) {
     lastMap = { plan, f };
     const rect = canvas.getBoundingClientRect();
     if (!rect.width) return;
@@ -1638,7 +1772,7 @@ td.num, th.num { text-align: right; }
     }
     const C = { ink: css("--ink"), route: css("--route"), focus: css("--focus"), brk: css("--break"), space: css("--space"), space2: css("--space-2"),
                 city: css("--city"), gold: css("--gold"), gridGlobe: css("--grid-globe"), coastGlobe: css("--coast-globe"), borderGlobe: css("--border-globe") };
-    const v = mapMode === "globe" ? globeView(plan, f, W, H) : flatView(plan, W, H), N = v.N;
+    const v = mapMode !== "flat" ? globeView(plan, f, W, H) : flatView(plan, W, H), N = v.N;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(drawBase(v, W, H, dpr, C), 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1711,30 +1845,410 @@ td.num, th.num { text-align: right; }
     }
   }
 
+  // ---------- Realistic moving map (WebGL2) ----------
+  // NASA Blue Marble imagery (geo/earth-*.{jpg,png}, public domain) on a ray-traced globe: the fragment shader
+  // intersects each pixel's view ray with the Earth, samples the satellite texture, adds hill shading from an
+  // elevation map, sea tint, optional real day/night with city lights, and the atmosphere. Route, labels with
+  // local times, pins and the 3D aircraft are drawn on the 2D overlay canvas with the same camera.
+  // If WebGL2 or the textures are unavailable (e.g. the file opened from disk), the canvas map above is used.
+  const FOV = 40;
+  const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const vmul = (a, k) => [a[0] * k, a[1] * k, a[2] * k], vnorm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+  let lighting = store.get("sfd.lighting", "day") === "live" ? "live" : "day";
+
+  const VS = `#version 300 es
+void main() { vec2 v = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); gl_Position = vec4(v * 2.0 - 1.0, 0.0, 1.0); }`;
+  const FS = `#version 300 es
+precision highp float;
+uniform vec2 uRes; uniform int uMode; uniform vec3 uCam, uF, uR, uU; uniform float uTan; uniform vec4 uFlat;
+uniform sampler2D uDay, uNight, uRelief, uWater; uniform vec3 uSun; uniform float uLive; uniform vec2 uTexel;
+out vec4 outColor;
+const float PI = 3.141592653589793;
+float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+vec3 space(vec3 dir, float glow) {
+  vec3 c = vec3(0.010, 0.014, 0.036);
+  vec3 cell = floor(dir * 380.0);
+  c += vec3(0.85, 0.9, 1.0) * step(0.9972, hash(cell)) * (0.35 + 0.65 * hash(cell + 7.0));
+  return c + vec3(0.36, 0.62, 1.0) * glow;
+}
+void main() {
+  vec2 frag = gl_FragCoord.xy;
+  vec3 P; vec3 dir = vec3(0.0, 0.0, -1.0);
+  float lat, lon, mu = 1.0, edge = 1.0;
+  vec3 sky = vec3(0.0);
+  if (uMode == 0) {
+    vec2 p = (frag - 0.5 * uRes) / (0.5 * uRes.y);
+    dir = normalize(uF + p.x * uTan * uR + p.y * uTan * uU);
+    float b = dot(uCam, dir), c = dot(uCam, uCam) - 1.0, h = b * b - c;
+    // r: how close the ray passes to Earth's centre. Every pixel keeps going (no early return) so texture
+    // derivatives stay valid at the limb, and the edge of the disc is anti-aliased against space.
+    float r = sqrt(max(dot(uCam, uCam) - b * b, 0.0));
+    sky = space(dir, b < 0.0 ? exp(-max(r - 1.0, 0.0) * 30.0) * 0.95 : 0.0);
+    edge = b < 0.0 ? 1.0 - smoothstep(1.0 - fwidth(r) * 1.5, 1.0, r) : 0.0;
+    P = normalize(uCam + (-b - sqrt(max(h, 0.0))) * dir);
+    mu = clamp(dot(P, -dir), 0.0, 1.0);
+    lat = asin(clamp(P.z, -1.0, 1.0)); lon = atan(P.y, P.x);
+  } else {
+    float y = uRes.y - frag.y;
+    float lonD = (frag.x - uFlat.x) / uFlat.z, latD = (uFlat.y - y) / uFlat.w;
+    if (abs(latD) > 90.0) { outColor = vec4(0.02, 0.03, 0.07, 1.0); return; }
+    lat = radians(latD); lon = radians(lonD);
+    P = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+  }
+  vec2 uv = vec2(fract(lon / (2.0 * PI) + 0.5), 0.5 - lat / PI);
+  vec2 uv2 = vec2(fract(uv.x + 0.5), uv.y);
+  vec2 dx = dFdx(uv), dy = dFdy(uv), dx2 = dFdx(uv2), dy2 = dFdy(uv2);
+  if (dot(dx2, dx2) + dot(dy2, dy2) < dot(dx, dx) + dot(dy, dy)) { dx = dx2; dy = dy2; }
+  vec3 col = textureGrad(uDay, uv, dx, dy).rgb;
+  float water = smoothstep(0.35, 0.65, textureGrad(uWater, uv, dx, dy).r);
+  // hill shading: slope from the elevation map, lit from the north-west like a printed relief map
+  vec2 o = max(uTexel * 1.6, abs(dx) + abs(dy));
+  float hE = textureGrad(uRelief, uv + vec2(o.x, 0.0), dx, dy).r, hW = textureGrad(uRelief, uv - vec2(o.x, 0.0), dx, dy).r;
+  float hN = textureGrad(uRelief, uv - vec2(0.0, o.y), dx, dy).r, hS = textureGrad(uRelief, uv + vec2(0.0, o.y), dx, dy).r;
+  float ex = 9.0 / 6371.0 * 16.0 * clamp(o.y * 1024.0, 1.0, 4.0);
+  vec3 n = normalize(vec3((hW - hE) * ex / (2.0 * o.x * 2.0 * PI * max(cos(lat), 0.2)), (hS - hN) * ex / (2.0 * o.y * PI), 1.0));
+  vec3 L = normalize(vec3(-0.55, 0.62, 0.56));
+  float relief = clamp(mix(1.0, dot(n, L) / L.z, 0.5), 0.72, 1.25);
+  // grade: richer land, clearer seas
+  float luma = dot(col, vec3(0.299, 0.587, 0.114));
+  vec3 land = pow(max(mix(vec3(luma), col, 1.28) * 1.2, 0.0), vec3(0.93)) * relief;
+  vec3 sea = col * vec3(0.86, 1.04, 1.22) * 1.18 + vec3(0.0, 0.025, 0.06);
+  col = mix(land, sea, water);
+  if (uLive > 0.5) {
+    float sd = dot(P, uSun);
+    float dayF = smoothstep(-0.10, 0.10, sd);
+    vec3 lights = textureGrad(uNight, uv, dx, dy).rgb;
+    vec3 nightCol = col * 0.12 + lights * vec3(1.0, 0.8, 0.52) * 1.5;
+    col = mix(nightCol, col * (0.8 + 0.2 * clamp(sd * 3.0, 0.0, 1.0)), dayF);
+    col += vec3(0.32, 0.13, 0.03) * exp(-sd * sd / 0.0025) * 0.35;
+    if (uMode == 0) { vec3 Hh = normalize(uSun - dir); col += vec3(1.0, 0.92, 0.78) * pow(max(dot(P, Hh), 0.0), 220.0) * water * dayF * 0.6; }
+  }
+  if (uMode == 0) { col = mix(col, vec3(0.62, 0.8, 1.0), pow(1.0 - mu, 2.6) * 0.62); col = mix(sky, col, edge); }
+  outColor = vec4(col, 1.0);
+}`;
+
+  const realMap = (() => {
+    const glc = $("globe");
+    let gl = null, prog = null, state = "idle";
+    const U = {}, tex = {};
+    let pending = 4;
+    function fail(why) { if (why) console.warn("Satellite map unavailable, using the drawn map:", why); state = "failed"; glc.hidden = true; refreshMap(); }
+    function start() {
+      if (state !== "idle") return;
+      state = "loading";
+      try { gl = glc.getContext("webgl2", { antialias: false, alpha: false, depth: false, stencil: false }); } catch (e) { gl = null; }
+      if (!gl) return fail("no WebGL2");
+      glc.addEventListener("webglcontextlost", e => { e.preventDefault(); fail("context lost"); });
+      try {
+        const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+        prog = gl.createProgram();
+        gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      } catch (e) { return fail(e.message); }
+      gl.bindVertexArray(gl.createVertexArray());
+      for (const n of ["uRes", "uMode", "uCam", "uF", "uR", "uU", "uTan", "uFlat", "uDay", "uNight", "uRelief", "uWater", "uSun", "uLive", "uTexel"]) U[n] = gl.getUniformLocation(prog, n);
+      const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE), aniso = gl.getExtension("EXT_texture_filter_anisotropic");
+      [["day", "geo/earth-day.jpg"], ["night", "geo/earth-night.jpg"], ["relief", "geo/earth-relief.png"], ["water", "geo/earth-water.png"]].forEach(([name, url], unit) => {
+        const im = new Image();
+        im.onerror = () => fail("could not load " + url);
+        im.onload = () => {
+          if (state === "failed") return;
+          try {
+            let src = im;
+            if (im.width > maxTex) { const c = document.createElement("canvas"); c.width = maxTex; c.height = maxTex / 2; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); src = c; }
+            const t = gl.createTexture(), one = name === "relief" || name === "water";
+            gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, one ? gl.R8 : gl.RGB8, one ? gl.RED : gl.RGB, gl.UNSIGNED_BYTE, src);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            if (aniso) gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+            if (gl.getError() !== gl.NO_ERROR) throw new Error("texture upload failed");
+            tex[unit] = t;
+            if (--pending === 0) { state = "ready"; glc.hidden = false; refreshMap(); }
+          } catch (e) { fail(e.message); }   // pages opened from disk cannot hand images to WebGL
+        };
+        im.src = url;
+      });
+    }
+
+    // ----- cameras -----
+    function makeCam(T, D, tilt, W, H) {
+      const Ea = Math.abs(T[2]) > 0.999 ? [1, 0, 0] : vnorm(cross([0, 0, 1], T)), Na = cross(T, Ea);
+      const pos = vadd(T, vmul(vsub(vmul(T, Math.cos(tilt)), vmul(Na, Math.sin(tilt))), D));
+      const F = vnorm(vsub(T, pos)), R = Ea, Up = vnorm(cross(R, F));
+      return { kind: "globe", pos, F, R, U: Up, tan: Math.tan(rad(FOV / 2)), W, H, D, tilt };
+    }
+    function cameraFor(plan, f, W, H, purpose) {
+      const mode = purpose === "preview" ? "overview" : mapMode;
+      if (mode === "flat") { const v = flatView(plan, W, H); return { kind: "flat", ox: v.ox, oy: v.oy, kx: v.k * v.s, s: v.s, cLon: (v.lon0 + v.lon1) / 2, W, H }; }
+      const a = byCode[plan.from], b = byCode[plan.to], d = Math.max(0.01, angDist(a, b)), tan = Math.tan(rad(FOV / 2)), asp = Math.min(1, W / H);
+      let T, D, tilt;
+      if (mode === "follow") {
+        // close chase view, like a cabin moving map: about 0.3 rad (~2,000 km) of ground across the screen
+        const p = gcPoint(a, b, Math.min(1, f)); T = V3(p.lat, p.lon);
+        const vis = Math.max(0.075, Math.min(0.2, d * 0.32));
+        D = vis / (tan * asp); tilt = rad(50);
+      } else {
+        // the whole route, fitted to the screen with a margin (binary search on camera distance)
+        const p = gcPoint(a, b, 0.5); T = V3(p.lat, p.lon);
+        tilt = rad(purpose === "preview" ? 30 : 24);
+        const probe = routePoints(a, b, 24).map(q => V3(q.lat, q.lon));
+        // on the flight deck the floating timer and data strip cover the top and bottom of the map
+        const hudOver = purpose !== "preview" && getComputedStyle(document.querySelector(".hud-strip")).position === "absolute";
+        const y0 = H * 0.2, y1 = hudOver ? H - 150 : H * 0.86, x0 = W * (hudOver ? 0.08 : 0.12), x1 = W - x0;
+        const fits = Dt => { const c = makeCam(T, Dt, tilt, W, H);
+          return probe.every(v => { const [x, y, ok] = project(c, v); return ok && x > x0 && x < x1 && y > y0 && y < y1; }); };
+        let lo = 0.04, hi = 4.5;
+        if (!fits(hi)) D = hi; else { for (let i = 0; i < 20; i++) { const mid = (lo + hi) / 2; if (fits(mid)) hi = mid; else lo = mid; } D = hi; }
+      }
+      if (purpose !== "preview" && userView && Date.now() < userViewUntil) T = V3(userView.lat, userView.lon);
+      if (purpose !== "preview") D /= mapZoom;
+      return makeCam(T, D, tilt, W, H);
+    }
+    function project(cam, P, h = 0) {
+      if (cam.kind === "flat") {
+        const lat = deg(Math.asin(Math.max(-1, Math.min(1, P[2])))); let lon = deg(Math.atan2(P[1], P[0]));
+        lon = cam.cLon + ((lon - cam.cLon + 540) % 360) - 180;
+        return [cam.ox + lon * cam.kx, cam.oy - lat * cam.s, true];
+      }
+      const Q = h ? vmul(P, 1 + h) : P, rel = vsub(Q, cam.pos), z = dot(rel, cam.F);
+      if (z <= 1e-6) return [0, 0, false];
+      const k = cam.H / 2 / (z * cam.tan);
+      const x = cam.W / 2 + dot(rel, cam.R) * k, y = cam.H / 2 - dot(rel, cam.U) * k;
+      let vis;
+      if (h <= 0.001) vis = dot(P, cam.pos) > 1.0005;
+      else {
+        const len = Math.hypot(rel[0], rel[1], rel[2]), d = vmul(rel, 1 / len), bb = dot(cam.pos, d), cc = dot(cam.pos, cam.pos) - 1, disc = bb * bb - cc;
+        vis = !(disc > 0 && (-bb - Math.sqrt(disc)) > 0 && (-bb - Math.sqrt(disc)) < len - 1e-6);
+      }
+      return [x, y, vis];
+    }
+
+    // ----- overlay pieces -----
+    function pin(x, y, kind) {
+      const r = 15, cy = y - 31;
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+      ctx.beginPath(); ctx.moveTo(x, y);
+      ctx.bezierCurveTo(x - 5, y - 10, x - r, cy + 9, x - r, cy);
+      ctx.arc(x, cy, r, Math.PI, 0);
+      ctx.bezierCurveTo(x + r, cy + 9, x + 5, y - 10, x, y); ctx.closePath();
+      const g = ctx.createLinearGradient(x, cy - r, x, y); g.addColorStop(0, "#93406f"); g.addColorStop(1, "#561c41");
+      ctx.fillStyle = g; ctx.fill();
+      ctx.shadowColor = "transparent"; ctx.lineWidth = 1.8; ctx.strokeStyle = "rgba(255, 255, 255, 0.92)"; ctx.stroke();
+      ctx.translate(x, cy); ctx.fillStyle = "#fff";
+      ctx.fillRect(-8, 7, 16, 1.6);
+      ctx.rotate(kind === "dep" ? -0.6 : 0.6); ctx.translate(0, -1.5); ctx.scale(0.72, 0.72);
+      ctx.beginPath();
+      ctx.moveTo(12, 0); ctx.lineTo(4, 2); ctx.lineTo(-1, 10); ctx.lineTo(-4, 10); ctx.lineTo(-1, 2); ctx.lineTo(-8, 2);
+      ctx.lineTo(-11, 6); ctx.lineTo(-13, 6); ctx.lineTo(-11, 0); ctx.lineTo(-13, -6); ctx.lineTo(-11, -6); ctx.lineTo(-8, -2);
+      ctx.lineTo(-1, -2); ctx.lineTo(-4, -10); ctx.lineTo(-1, -10); ctx.lineTo(4, -2); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    function cityLabel(x, y, name, time, big) {
+      ctx.save();
+      ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.85)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
+      ctx.font = `700 ${big ? 16 : 14}px ${css("--font-display")}`; ctx.fillText(name, x, y - 3);
+      if (time) { ctx.font = `700 ${big ? 22 : 19}px ${css("--font-display")}`; ctx.fillText(time, x, y + 17); }
+      ctx.restore();
+    }
+    const overlaps = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+
+    function overlay(cam, plan, f, purpose, W, H, dpr) {
+      if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      const C = { ink: "#fff", gold: css("--gold"), brk: css("--break"), tail: [122, 42, 92], glow: lighting === "live" };
+      const a = byCode[plan.from], b = byCode[plan.to], N = 220;
+      const pts = routePoints(a, b, N).map(p => V3(p.lat, p.lon));
+      const scr = pts.map(v => project(cam, v, 0));
+      const cut = purpose === "preview" ? 0 : Math.round(Math.min(1, f) * N);
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      if (cam.kind === "globe") {
+        const pxPerRad = (H / 2) / (cam.D * cam.tan), w = loadWorld();
+        if (w && pxPerRad > 2600) {
+          if (!w.arcCenters) w.arcCenters = w.arcXyz.map(arc => { let x = 0, y = 0, z = 0; for (let i = 0; i < arc.length; i += 3) { x += arc[i]; y += arc[i + 1]; z += arc[i + 2]; }
+            const c = vnorm([x, y, z]); let r = 1; for (let i = 0; i < arc.length; i += 3) r = Math.min(r, c[0] * arc[i] + c[1] * arc[i + 1] + c[2] * arc[i + 2]); return [c, r]; });
+          const T = vnorm(vadd(cam.pos, vmul(cam.F, cam.D))), reach = Math.cos(Math.min(1.2, 1.6 * cam.D + 0.1));
+          ctx.globalAlpha = Math.min(1, (pxPerRad - 2600) / 2000) * 0.5;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.85)"; ctx.lineWidth = 1;
+          ctx.beginPath();
+          w.arcXyz.forEach((arc, ai) => {
+            if (w.kind[ai] !== "1") return;
+            const [c, r] = w.arcCenters[ai];
+            if (Math.acos(Math.max(-1, Math.min(1, dot(c, T)))) > Math.acos(reach) + Math.acos(Math.max(-1, Math.min(1, r)))) return;   // off screen
+            let pen = false;
+            for (let i = 0; i < arc.length; i += 3) {
+              const [x, y, ok] = project(cam, [arc[i], arc[i + 1], arc[i + 2]], 0);
+              if (ok) { pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true; } else pen = false;
+            }
+          });
+          ctx.stroke(); ctx.globalAlpha = 1;
+        }
+      }
+      const band = (from, to, color, w) => {
+        if (to <= from) return;
+        ctx.strokeStyle = "rgba(25, 12, 30, 0.3)"; ctx.lineWidth = w + 4; polyline(scr, from, to);
+        ctx.strokeStyle = color; ctx.lineWidth = w; polyline(scr, from, to);
+      };
+      const bw = Math.max(5, Math.min(10, W / 110));
+      band(cut, N, "rgba(255, 255, 255, 0.66)", bw);
+      band(0, cut, "rgba(226, 152, 82, 0.95)", bw + 1);
+      // study breaks along the route
+      plan.segments.filter(sg => sg.type === "break").forEach(sg => {
+        const [x, y, ok] = scr[Math.round(((sg.start + sg.end) / 2) / plan.totalMin * N)]; if (!ok) return;
+        ctx.fillStyle = C.brk; ctx.strokeStyle = "rgba(40, 20, 10, 0.7)"; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(x, y - 5); ctx.lineTo(x + 5, y); ctx.lineTo(x, y + 5); ctx.lineTo(x - 5, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+      });
+      // aircraft position (computed first so labels keep clear of it)
+      let plane = null;
+      if (purpose !== "preview") {
+        const fi = Math.min(N, f * N), i0 = Math.min(N - 1, Math.floor(fi)), t = fi - i0;
+        const pu = vnorm(vadd(vmul(pts[i0], 1 - t), vmul(pts[i0 + 1], t)));
+        const size = Math.max(64, Math.min(124, Math.min(W, H) * 0.2));
+        if (cam.kind === "globe") {
+          const h = 30 * cam.D * cam.tan / (H / 2);   // about 30 * sin(tilt) px above its shadow
+          const [px, py, ok] = project(cam, pu, h), [gx, gy] = project(cam, pu, 0);
+          if (ok) {
+            const dir = vsub(pts[i0 + 1], pts[i0]), along = dot(dir, pu), T = vnorm(vsub(dir, vmul(pu, along)));
+            const toView = w => [dot(w, cam.R), dot(w, cam.U), -dot(w, cam.F)];
+            const [Fw, Uw] = pitched(T, pu, pitchFor(plan, f));
+            plane = { draw: () => drawPlane3D(px, py, toView(Fw), toView(cross(T, pu)), toView(Uw), size, [gx, gy], C), x: px, y: py, size };
+          }
+        } else {
+          const [ax, ay] = scr[i0], [bx, by] = scr[i0 + 1], hx = ax + (bx - ax) * t, hy = ay + (by - ay) * t;
+          const ang = Math.atan2(by - ay, bx - ax), tl = rad(40), ct = Math.cos(tl), st = Math.sin(tl);
+          const tv = w => [w[0], w[1] * ct + w[2] * st, -w[1] * st + w[2] * ct];
+          const F0 = [Math.cos(ang), -Math.sin(ang), 0], U0 = [0, 0, 1], [Fp, Up] = pitched(F0, U0, pitchFor(plan, f));
+          plane = { draw: () => drawPlane3D(hx, hy - 22, tv(Fp), tv(cross(F0, U0)), tv(Up), size, [hx, hy], C), x: hx, y: hy - 22, size };
+        }
+      }
+      // labels: endpoints first, then the best-known cities that fit without overlapping
+      const boxes = [];
+      if (purpose !== "preview") {   // keep labels out from under the floating timer, tools and flight-data strip
+        const sr = $("mapStage").getBoundingClientRect();
+        for (const el of document.querySelectorAll("#ife .hud, #ife .nd-tools")) {
+          const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+          if (cs.position === "absolute" && r.width) boxes.push([r.left - sr.left - 6, r.top - sr.top - 6, r.right - sr.left + 6, r.bottom - sr.top + 6]);
+        }
+      }
+      if (plane) boxes.push([plane.x - plane.size * 0.55, plane.y - plane.size * 0.45, plane.x + plane.size * 0.55, plane.y + plane.size * 0.45]);
+      const ends = [[a, "dep", scr[0]], [b, "arr", scr[N]]];
+      const shown = new Set();
+      ctx.font = `700 16px ${css("--font-display")}`;
+      for (const [ap, kind, [x, y, ok]] of ends) {
+        if (!ok) continue;
+        boxes.push([x - 18, y - 48, x + 18, y + 2]);
+        const name = shortCity(ap.city), w = ctx.measureText(name).width + 12;
+        boxes.push([x - w / 2, y + 8, x + w / 2, y + 48]);
+        shown.add(name);
+      }
+      const cands = [];
+      for (const L of MAP_LABELS) {
+        if (shown.has(L.name)) continue;
+        const [x, y, ok] = project(cam, L.v, 0);
+        if (!ok || x < 34 || x > W - 34 || y < 40 || y > H - 24) continue;
+        if (cam.kind === "globe" && dot(L.v, vnorm(vsub(cam.pos, L.v))) < 0.16) continue;   // too close to the horizon to read
+        cands.push({ L, x, y });
+      }
+      cands.sort((p, q) => p.L.tier - q.L.tier || p.L.order - q.L.order);
+      const maxLabels = Math.max(5, Math.min(20, Math.round(W * H / 26000)));
+      let count = 0;
+      for (const c of cands) {
+        if (count >= maxLabels) break;
+        if (shown.has(c.L.name)) continue;
+        ctx.font = `700 14px ${css("--font-display")}`;
+        const w = ctx.measureText(c.L.name).width + 16, box = [c.x - w / 2, c.y - 20, c.x + w / 2, c.y + 24];
+        if (box[0] < 4 || box[2] > W - 4 || boxes.some(bx => overlaps(bx, box))) continue;
+        boxes.push(box); shown.add(c.L.name); count++;
+        cityLabel(c.x, c.y, c.L.name, localTime(c.L.tz), false);
+      }
+      for (const [ap, kind, [x, y, ok]] of ends) {
+        if (!ok) continue;
+        pin(x, y, kind);
+        cityLabel(x, y + 24, shortCity(ap.city), localTime(TZ[ap.code]), true);
+      }
+      if (plane) plane.draw();
+    }
+
+    function render(plan, f, purpose) {
+      const stage = $("mapStage"), rect = stage.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const W = rect.width, H = rect.height, dpr = Math.min(2, window.devicePixelRatio || 1);
+      const cam = cameraFor(plan, f, W, H, purpose);
+      const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+      if (glc.width !== pw || glc.height !== ph) { glc.width = pw; glc.height = ph; }
+      gl.viewport(0, 0, pw, ph); gl.useProgram(prog);
+      gl.uniform2f(U.uRes, pw, ph);
+      if (cam.kind === "globe") {
+        gl.uniform1i(U.uMode, 0); gl.uniform3fv(U.uCam, cam.pos); gl.uniform3fv(U.uF, cam.F); gl.uniform3fv(U.uR, cam.R); gl.uniform3fv(U.uU, cam.U);
+        gl.uniform1f(U.uTan, cam.tan);
+      } else {
+        gl.uniform1i(U.uMode, 1); gl.uniform4f(U.uFlat, cam.ox * dpr, cam.oy * dpr, cam.kx * dpr, cam.s * dpr);
+      }
+      gl.uniform3fv(U.uSun, sunVec(Date.now())); gl.uniform1f(U.uLive, lighting === "live" ? 1 : 0); gl.uniform2f(U.uTexel, 1 / 2048, 1 / 1024);
+      ["uDay", "uNight", "uRelief", "uWater"].forEach((n, unit) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex[unit]); gl.uniform1i(U[n], unit); });
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      overlay(cam, plan, f, purpose, W, H, dpr);
+      return cam;
+    }
+    return {
+      start, render, cameraFor,
+      get ready() { return state === "ready"; },
+      get failed() { return state === "failed"; }
+    };
+  })();
+
+  function drawMap(plan, f, purpose = "deck") {
+    lastMap = { plan, f, purpose };
+    realMap.start();
+    if (realMap.ready) realMap.render(plan, f, purpose);
+    else legacyDrawMap(plan, f);
+    lastMap = { plan, f, purpose };
+  }
+  function refreshMap() {
+    if (flight) { if (lastMap) drawMap(lastMap.plan, lastMap.f, "deck"); }
+    else if (!$("planner").hidden) drawMap(planFromDraft(), 0, "preview");
+  }
+  function mountMap(slotId) { const st = $("mapStage"), slot = $(slotId); if (slot && st.parentNode !== slot) slot.appendChild(st); }
+
   // ----- Map controls -----
-  function redrawMap() { if (lastMap && flight) drawMap(lastMap.plan, lastMap.f); }
+  function redrawMap() { if (lastMap && flight) drawMap(lastMap.plan, lastMap.f, "deck"); }
   function syncMapTools() {
     document.querySelectorAll("[data-map-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mapMode === mapMode)));
-    $("ndHint").textContent = mapMode === "globe" ? "Drag to look around · double-click to follow the plane" : "";
-    canvas.style.cursor = mapMode === "globe" ? "grab" : "";
+    $("lightBtn").textContent = lighting === "live" ? "Live sun" : "Daylight";
+    $("lightBtn").setAttribute("aria-pressed", String(lighting === "live"));
+    $("ndHint").textContent = mapMode === "flat" ? "" : "Drag to look around · double-click to follow the plane";
+    canvas.style.cursor = mapMode === "flat" ? "" : "grab";
   }
   document.querySelectorAll("[data-map-mode]").forEach(b => b.addEventListener("click", () => {
     mapMode = b.dataset.mapMode; store.set("sfd.mapMode", mapMode); mapZoom = 1; userView = null; syncMapTools(); redrawMap();
   }));
-  $("zoomIn").addEventListener("click", () => { mapZoom = Math.min(8, mapZoom * 1.5); redrawMap(); });
-  $("zoomOut").addEventListener("click", () => { mapZoom = Math.max(0.35, mapZoom / 1.5); redrawMap(); });
+  $("lightBtn").addEventListener("click", () => { lighting = lighting === "live" ? "day" : "live"; store.set("sfd.lighting", lighting); baseKey = ""; syncMapTools(); refreshMap(); });
+  $("zoomIn").addEventListener("click", () => { mapZoom = Math.min(8, mapZoom * 1.4); redrawMap(); });
+  $("zoomOut").addEventListener("click", () => { mapZoom = Math.max(0.3, mapZoom / 1.4); redrawMap(); });
   let dragState = null, dragFrame = 0;
   canvas.addEventListener("pointerdown", e => {
-    if (mapMode !== "globe" || !lastMap) return;
-    const v = globeView(lastMap.plan, lastMap.f, canvas.clientWidth, canvas.clientHeight);
-    dragState = { x: e.clientX, y: e.clientY, lat: v.tLat, lon: v.tLon, R: v.R };
+    if (mapMode === "flat" || !lastMap || !flight) return;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    let lat, lon, k;
+    if (realMap.ready) {
+      const cam = realMap.cameraFor(lastMap.plan, lastMap.f, W, H, "deck"), T = vnorm(vadd(cam.pos, vmul(cam.F, cam.D)));
+      lat = deg(Math.asin(T[2])); lon = deg(Math.atan2(T[1], T[0])); k = cam.D * cam.tan / (H / 2);
+    } else { const v = globeView(lastMap.plan, lastMap.f, W, H); lat = v.tLat; lon = v.tLon; k = 1 / v.R; }
+    dragState = { x: e.clientX, y: e.clientY, lat, lon, k };
     canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing";
   });
   canvas.addEventListener("pointermove", e => {
     if (!dragState) return;
     const dx = e.clientX - dragState.x, dy = e.clientY - dragState.y;
-    const lat = Math.max(-85, Math.min(85, dragState.lat + deg(dy / dragState.R)));
-    const lon = dragState.lon - deg(dx / dragState.R) / Math.max(0.25, Math.cos(rad(lat)));
+    const lat = Math.max(-85, Math.min(85, dragState.lat + deg(dy * dragState.k)));
+    const lon = dragState.lon - deg(dx * dragState.k) / Math.max(0.25, Math.cos(rad(lat)));
     userView = { lat, lon }; userViewUntil = Date.now() + LOOK_MS;
     if (!dragFrame) dragFrame = requestAnimationFrame(() => { dragFrame = 0; redrawMap(); });
   });
@@ -1742,6 +2256,7 @@ td.num, th.num { text-align: right; }
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
   canvas.addEventListener("dblclick", () => { userView = null; mapZoom = 1; redrawMap(); });
+  window.addEventListener("resize", () => { if (!flight) refreshMap(); });
   syncMapTools();
 
   // ---------- Landed + logbook ----------
@@ -2290,6 +2805,23 @@ td.num, th.num { text-align: right; }
     boardMode = b.dataset.board; store.set("sfd.boardMode", boardMode); renderBoard();
   }));
 
+  const ICON = {
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    flame: '<path d="M12 21.5c3.9 0 6.5-2.8 6.5-6.6 0-3.6-2.4-5.4-3.6-8.9-1.7 1.6-2.6 3.5-2.6 5.3-1-.9-1.8-2.1-1.9-3.8-2.8 1.9-4.9 4.6-4.9 7.6 0 3.7 2.7 6.4 6.5 6.4z"/>',
+    plane: '<path d="M21 4L3 11l7 2.5L12.5 21 21 4z"/><path d="M10 13.5L21 4"/>',
+    ticket: '<path d="M3.5 7.5a2 2 0 0 0 2-2h13a2 2 0 0 0 2 2v9a2 2 0 0 0-2 2h-13a2 2 0 0 0-2-2z"/><path d="M14 5.5v13" stroke-dasharray="2 2"/>',
+    clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/>',
+    moon: '<path d="M19.5 14.6A8 8 0 1 1 9.4 4.5a6.4 6.4 0 0 0 10.1 10.1z"/>',
+    sunrise: '<path d="M3 18.5h18M6.5 18.5a5.5 5.5 0 0 1 11 0M12 3.5v4M4.9 10.4l1.8 1.3M19.1 10.4l-1.8 1.3"/>',
+    shield: '<path d="M12 3l7.5 3v5.6c0 4.7-3.2 7.9-7.5 9.4-4.3-1.5-7.5-4.7-7.5-9.4V6z"/><path d="M8.6 12l2.4 2.4 4.4-4.6"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.8 2.6 2.8 14.4 0 17M12 3.5c-2.8 2.6-2.8 14.4 0 17"/>',
+    star: '<path d="M12 3.2l2.7 5.6 6 .9-4.4 4.2 1.1 6.1L12 17.1 6.6 20l1.1-6.1-4.4-4.2 6-.9z"/>'
+  };
+  const CH_ICON = { today: "sun", week: "calendar", first: "plane", ten: "ticket", streak3: "flame", streak7: "flame", streak30: "flame",
+    longhaul: "clock", redeye: "moon", early: "sunrise", clean: "shield", century: "star" };
+  const chIcon = id => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[CH_ICON[id] || "globe"]}</svg>`;
+
   function renderCareer() {
     const st = careerStats(logbook), rk = rankFor(st.totalMin);
     $("epaulette").innerHTML = epaulette(rk.r);
@@ -2306,7 +2838,7 @@ td.num, th.num { text-align: right; }
       const v = c.val(st), ok = v >= c.target; if (ok) done++;
       const pct = Math.min(100, Math.round(v / c.target * 100));
       return `<div class="ch${ok ? " done" : ""}">
-        <div class="ch-top"><span class="ch-medal" aria-hidden="true">${ok ? "✓" : ""}</span><div><b>${c.title}</b>${c.kind ? `<span class="ch-kind">${c.kind}</span>` : ""}</div></div>
+        <div class="ch-top"><span class="ch-medal" aria-hidden="true">${chIcon(c.id)}</span><div><b>${c.title}</b>${c.kind ? `<span class="ch-kind">${c.kind}</span>` : ""}</div></div>
         <p>${c.desc}</p>
         <div class="meter"><i style="width:${pct}%"></i></div>
         <span class="ch-prog">${ok ? "Complete" : fmtProgress(c, v)}</span>
@@ -2325,6 +2857,7 @@ td.num, th.num { text-align: right; }
     renderLanded();
     renderLog();
     renderCareer();
+    mountMap(active ? "deckMapSlot" : "planMapSlot");
     if (active) {
       $("dFlight").textContent = flight.plan.flightNo + (flight.seat ? ` · Seat ${flight.seat}` : "");
       $("dRoute").textContent = `${byCode[flight.plan.from].city} → ${byCode[flight.plan.to].city}`;
@@ -2333,6 +2866,7 @@ td.num, th.num { text-align: right; }
       document.title = ticket ? `Ticket ${ticket.plan.from}→${ticket.plan.to}` : "Study Flight Deck";
       syncForm(); renderPass();
     }
+    requestAnimationFrame(refreshMap);
   }
 
   setInterval(() => { if (flight) tick(); }, 250);

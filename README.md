@@ -4,7 +4,7 @@
 
 ## Use it
 
-Open `index.html` in any browser. There's no build step and no dependencies. Keep `geo/world.js` next to it, because that file holds the map data.
+Open `index.html` in any browser. There's no build step and no dependencies. Keep the `geo/` folder next to it, because it holds the map data and imagery. The satellite map needs the page to be served over http(s), for example by GitHub Pages, the claude.ai artifact or `python3 -m http.server`. Opened straight from disk, the page falls back to a drawn map.
 
 1. **File a flight plan.** Pick From and To from 217 airports, grouped by region: East and Southeast Asia, the Philippines, South Asia, the Middle East, Central Asia and the Caucasus, Europe, Africa, North America, Central America and the Caribbean, South America and Oceania. The block time comes from the great-circle distance (cruise around 830 km/h plus 30 min for taxi, climb and approach). You can change the hours and minutes if you want a different session length.
 2. **Set your rhythm.** Add your name for the ticket. The defaults are 50 min study blocks with 10 min breaks. The last study block runs until landing.
@@ -13,12 +13,15 @@ Open `index.html` in any browser. There's no build step and no dependencies. Kee
    - the seatbelt sign: cyan **Fasten seatbelt: study** or amber **Seatbelt off: take a break**
    - a countdown for the current block, plus the time of the next change
    - phase, altitude, ground speed, distance to go, time to go and ETA
-   - a nav display, either a **3D globe** (default) or a **flat** map:
-     - the globe follows your plane and tilts toward the horizon when zoomed in, so the flight path arcs above the ground with its shadow underneath
-     - drag to look around, double-click to follow the plane again, use + and − to zoom
-     - land is colored by climate (rainforest, desert, forest, tundra, ice), oceans get depth and sun glare, and day and night follow the real position of the sun
-     - a shaded 3D airliner model with a gold tail and blinking navigation lights (red left, green right, white strobe). It pitches nose-up in the climb and down on descent, and casts a shadow on the ground
-     - real coastlines and borders, nearby airports, gold diamonds for breaks, and a nautical-mile scale bar
+   - a large moving map, like the ones on airline seat-back screens:
+     - **Follow** is a tilted chase view behind the aircraft, with the curved horizon and atmosphere. **Route** shows the whole flight. **Flat** is a classic map.
+     - NASA Blue Marble satellite imagery with hill shading
+     - city labels with each city's **local time**
+     - the route as a gold band (flown) and a white band (still to fly), with maroon pins marking departure and arrival
+     - a shaded 3D airliner with navigation lights and a ground shadow
+     - **Daylight** lighting, or **Live sun**, which shows real day and night with city lights
+     - drag to look around, + and − to zoom
+   - the timer and flight data float over the map: phase, altitude, speed, distance, time to go, arrival, and the time at your destination
 5. A two-note cabin chime (rising for study, falling for a break) plays when the sign changes and when you land. If you allow notifications, you also get one.
 
 Controls: **Enter holding** pauses (or press Space), **Skip to next** jumps to the next block, **Divert** ends the flight early. Every flight is saved in the **Pilot logbook** with the study time you put in. If you reload the page mid-flight, the flight carries on where it was.
@@ -26,6 +29,8 @@ Controls: **Enter holding** pauses (or press Space), **Skip to next** jumps to t
 All data stays in your browser's local storage.
 
 ## Map data
+
+- `geo/earth-day.jpg`, `geo/earth-night.jpg`, `geo/earth-relief.png` and `geo/earth-water.png` are NASA Blue Marble / Black Marble imagery, elevation and water mask (public domain, NASA Earth Observatory), taken from the example images shipped with the `three-globe@2.31.0` npm package.
 
 `geo/world.js` holds country outlines from [Natural Earth](https://www.naturalearthdata.com/) at 1:50m scale (public domain), taken from the `world-atlas@2.0.2` package and repacked into a compact form for the nav display.
 
